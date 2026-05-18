@@ -1,0 +1,798 @@
+{
+  "kv": {
+    "roster:pl-1": {
+      "value": "{\"id\":\"pl-1\",\"number\":4,\"name\":\"M. Anderson\",\"position\":\"PG\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-2": {
+      "value": "{\"id\":\"pl-2\",\"number\":7,\"name\":\"D. Wilson\",\"position\":\"SG\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-3": {
+      "value": "{\"id\":\"pl-3\",\"number\":23,\"name\":\"J. Carter\",\"position\":\"SF\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-4": {
+      "value": "{\"id\":\"pl-4\",\"number\":32,\"name\":\"K. Brown\",\"position\":\"PF\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-5": {
+      "value": "{\"id\":\"pl-5\",\"number\":55,\"name\":\"L. Mitchell\",\"position\":\"C\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-6": {
+      "value": "{\"id\":\"pl-6\",\"number\":1,\"name\":\"A. Thompson\",\"position\":\"PG\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-7": {
+      "value": "{\"id\":\"pl-7\",\"number\":11,\"name\":\"R. Davis\",\"position\":\"SG\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-8": {
+      "value": "{\"id\":\"pl-8\",\"number\":21,\"name\":\"C. Martinez\",\"position\":\"SF\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-9": {
+      "value": "{\"id\":\"pl-9\",\"number\":34,\"name\":\"B. White\",\"position\":\"PF\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "roster:pl-10": {
+      "value": "{\"id\":\"pl-10\",\"number\":42,\"name\":\"T. Hall\",\"position\":\"C\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "games:gm-1": {
+      "value": "{\"id\":\"gm-1\",\"opponent\":\"Riverside Knights\",\"date\":\"2026-05-09\",\"season\":\"2025-26\",\"homeAway\":\"home\",\"teamScore\":89,\"oppScore\":88,\"status\":\"completed\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "games:gm-2": {
+      "value": "{\"id\":\"gm-2\",\"opponent\":\"Eastside Eagles\",\"date\":\"2026-05-04\",\"season\":\"2025-26\",\"homeAway\":\"away\",\"teamScore\":76,\"oppScore\":81,\"status\":\"completed\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "games:gm-3": {
+      "value": "{\"id\":\"gm-3\",\"opponent\":\"Central Tigers\",\"date\":\"2026-05-18\",\"season\":\"2025-26\",\"homeAway\":\"home\",\"teamScore\":null,\"oppScore\":null,\"status\":\"scheduled\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "games:gm-4": {
+      "value": "{\"id\":\"gm-4\",\"opponent\":\"Northgate Wolves\",\"date\":\"2026-04-26\",\"season\":\"2025-26\",\"homeAway\":\"home\",\"teamScore\":93,\"oppScore\":78,\"status\":\"completed\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "games:gm-5": {
+      "value": "{\"id\":\"gm-5\",\"opponent\":\"Harbor Sharks\",\"date\":\"2026-04-19\",\"season\":\"2025-26\",\"homeAway\":\"away\",\"teamScore\":71,\"oppScore\":69,\"status\":\"completed\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "teamProfile:team:default": {
+      "value": "{\"id\":\"team:default\",\"name\":\"Centralize Crusaders\",\"coach\":\"Coach R. Patterson\",\"colour\":\"#0d9488\",\"season\":\"2025-26\",\"offensivePlays\":\"Princeton, 5-Out, Spain PnR\",\"defensivePlays\":\"Pack-Line, 2-3 Zone, Switch Everything\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-1": {
+      "value": "{\"id\":\"pp-pl-1\",\"playerId\":\"pl-1\",\"fullName\":\"Marcus Anderson\",\"age\":19,\"height\":\"6'2\\\"\",\"weight\":172,\"contactPhone\":\"555-0104\",\"contactEmail\":\"pl-1@team.example\",\"dateOfBirth\":\"2005-01-10\",\"jerseyNumber\":4,\"position\":\"PG\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1778526977507,\"photoDataUrl\":null,\"bio\":\"Floor general. 4-year starter at point.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-2": {
+      "value": "{\"id\":\"pp-pl-2\",\"playerId\":\"pl-2\",\"fullName\":\"Devon Wilson\",\"age\":20,\"height\":\"6'4\\\"\",\"weight\":180,\"contactPhone\":\"555-0107\",\"contactEmail\":\"pl-2@team.example\",\"dateOfBirth\":\"2004-02-11\",\"jerseyNumber\":7,\"position\":\"SG\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1778267777507,\"photoDataUrl\":null,\"bio\":\"Sharpshooter. Three-time conference all-star.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-3": {
+      "value": "{\"id\":\"pp-pl-3\",\"playerId\":\"pl-3\",\"fullName\":\"Jordan Carter\",\"age\":21,\"height\":\"6'6\\\"\",\"weight\":188,\"contactPhone\":\"555-0123\",\"contactEmail\":\"pl-3@team.example\",\"dateOfBirth\":\"2003-03-12\",\"jerseyNumber\":23,\"position\":\"SF\",\"verified\":false,\"verifiedBy\":null,\"verifiedAt\":null,\"photoDataUrl\":null,\"bio\":\"Two-way wing. Always asks for the matchup.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-4": {
+      "value": "{\"id\":\"pp-pl-4\",\"playerId\":\"pl-4\",\"fullName\":\"Kevon Brown\",\"age\":22,\"height\":\"6'8\\\"\",\"weight\":196,\"contactPhone\":\"555-0132\",\"contactEmail\":\"pl-4@team.example\",\"dateOfBirth\":\"2002-04-13\",\"jerseyNumber\":32,\"position\":\"PF\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1777749377507,\"photoDataUrl\":null,\"bio\":\"Captain. Rebounds for everyone.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-5": {
+      "value": "{\"id\":\"pp-pl-5\",\"playerId\":\"pl-5\",\"fullName\":\"Lewis Mitchell\",\"age\":23,\"height\":\"6'11\\\"\",\"weight\":204,\"contactPhone\":\"555-0155\",\"contactEmail\":\"pl-5@team.example\",\"dateOfBirth\":\"2001-05-14\",\"jerseyNumber\":55,\"position\":\"C\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1777490177507,\"photoDataUrl\":null,\"bio\":\"Rim protector. Career-high 7 blocks.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-6": {
+      "value": "{\"id\":\"pp-pl-6\",\"playerId\":\"pl-6\",\"fullName\":\"Aiden Thompson\",\"age\":24,\"height\":\"5'11\\\"\",\"weight\":212,\"contactPhone\":\"555-0101\",\"contactEmail\":\"pl-6@team.example\",\"dateOfBirth\":\"2000-06-15\",\"jerseyNumber\":1,\"position\":\"PG\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1779131797282,\"photoDataUrl\":null,\"bio\":\"Freshman. Quick first step.\",\"updatedAt\":1779131797282}",
+      "updated_at": 1779131797289,
+      "updated_by": "coach-1"
+    },
+    "playerProfiles:pp-pl-7": {
+      "value": "{\"id\":\"pp-pl-7\",\"playerId\":\"pl-7\",\"fullName\":\"Ryan Davis\",\"age\":19,\"height\":\"6'3\\\"\",\"weight\":220,\"contactPhone\":\"555-0111\",\"contactEmail\":\"pl-7@team.example\",\"dateOfBirth\":\"2005-07-16\",\"jerseyNumber\":11,\"position\":\"SG\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1776971777507,\"photoDataUrl\":null,\"bio\":\"Hustle stats off the charts.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-8": {
+      "value": "{\"id\":\"pp-pl-8\",\"playerId\":\"pl-8\",\"fullName\":\"Carlos Martinez\",\"age\":20,\"height\":\"6'5\\\"\",\"weight\":228,\"contactPhone\":\"555-0121\",\"contactEmail\":\"pl-8@team.example\",\"dateOfBirth\":\"2004-08-17\",\"jerseyNumber\":21,\"position\":\"SF\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1776712577507,\"photoDataUrl\":null,\"bio\":\"Versatile defender. 1-4 switchable.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-9": {
+      "value": "{\"id\":\"pp-pl-9\",\"playerId\":\"pl-9\",\"fullName\":\"Brandon White\",\"age\":21,\"height\":\"6'9\\\"\",\"weight\":236,\"contactPhone\":\"555-0134\",\"contactEmail\":\"pl-9@team.example\",\"dateOfBirth\":\"2003-09-18\",\"jerseyNumber\":34,\"position\":\"PF\",\"verified\":false,\"verifiedBy\":null,\"verifiedAt\":null,\"photoDataUrl\":null,\"bio\":\"Pick-and-pop big. Stretch four.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "playerProfiles:pp-pl-10": {
+      "value": "{\"id\":\"pp-pl-10\",\"playerId\":\"pl-10\",\"fullName\":\"Tyrese Hall\",\"age\":22,\"height\":\"6'10\\\"\",\"weight\":244,\"contactPhone\":\"555-0142\",\"contactEmail\":\"pl-10@team.example\",\"dateOfBirth\":\"2002-01-19\",\"jerseyNumber\":42,\"position\":\"C\",\"verified\":true,\"verifiedBy\":\"Coach R. Patterson\",\"verifiedAt\":1776194177507,\"photoDataUrl\":null,\"bio\":\"Skilled five. Soft hands on the roll.\"}",
+      "updated_at": 1779131777507,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-1": {
+      "value": "{\"id\":\"gs-gm-1-pl-1\",\"gameId\":\"gm-1\",\"playerId\":\"pl-1\",\"min\":31,\"pts\":15,\"ast\":13,\"reb\":5,\"stl\":1,\"blk\":1,\"fga\":13,\"fgm\":5,\"tpa\":6,\"tpm\":2,\"fta\":4,\"ftm\":1,\"tov\":3,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-2": {
+      "value": "{\"id\":\"gs-gm-1-pl-2\",\"gameId\":\"gm-1\",\"playerId\":\"pl-2\",\"min\":28,\"pts\":28,\"ast\":5,\"reb\":7,\"stl\":1,\"blk\":1,\"fga\":10,\"fgm\":8,\"tpa\":1,\"tpm\":2,\"fta\":3,\"ftm\":4,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-3": {
+      "value": "{\"id\":\"gs-gm-1-pl-3\",\"gameId\":\"gm-1\",\"playerId\":\"pl-3\",\"min\":22,\"pts\":14,\"ast\":3,\"reb\":4,\"stl\":2,\"blk\":1,\"fga\":15,\"fgm\":9,\"tpa\":6,\"tpm\":4,\"fta\":1,\"ftm\":1,\"tov\":1,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-4": {
+      "value": "{\"id\":\"gs-gm-1-pl-4\",\"gameId\":\"gm-1\",\"playerId\":\"pl-4\",\"min\":36,\"pts\":26,\"ast\":5,\"reb\":11,\"stl\":2,\"blk\":2,\"fga\":12,\"fgm\":6,\"tpa\":1,\"tpm\":0,\"fta\":5,\"ftm\":4,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-5": {
+      "value": "{\"id\":\"gs-gm-1-pl-5\",\"gameId\":\"gm-1\",\"playerId\":\"pl-5\",\"min\":33,\"pts\":19,\"ast\":2,\"reb\":17,\"stl\":2,\"blk\":1,\"fga\":9,\"fgm\":9,\"tpa\":1,\"tpm\":0,\"fta\":4,\"ftm\":2,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-6": {
+      "value": "{\"id\":\"gs-gm-1-pl-6\",\"gameId\":\"gm-1\",\"playerId\":\"pl-6\",\"min\":15,\"pts\":13,\"ast\":4,\"reb\":5,\"stl\":3,\"blk\":0,\"fga\":8,\"fgm\":6,\"tpa\":2,\"tpm\":3,\"fta\":2,\"ftm\":3,\"tov\":0,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-7": {
+      "value": "{\"id\":\"gs-gm-1-pl-7\",\"gameId\":\"gm-1\",\"playerId\":\"pl-7\",\"min\":13,\"pts\":9,\"ast\":7,\"reb\":7,\"stl\":3,\"blk\":0,\"fga\":6,\"fgm\":4,\"tpa\":5,\"tpm\":4,\"fta\":1,\"ftm\":2,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-8": {
+      "value": "{\"id\":\"gs-gm-1-pl-8\",\"gameId\":\"gm-1\",\"playerId\":\"pl-8\",\"min\":11,\"pts\":6,\"ast\":1,\"reb\":2,\"stl\":0,\"blk\":0,\"fga\":4,\"fgm\":2,\"tpa\":0,\"tpm\":0,\"fta\":0,\"ftm\":0,\"tov\":0,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-9": {
+      "value": "{\"id\":\"gs-gm-1-pl-9\",\"gameId\":\"gm-1\",\"playerId\":\"pl-9\",\"min\":17,\"pts\":8,\"ast\":6,\"reb\":10,\"stl\":1,\"blk\":3,\"fga\":7,\"fgm\":3,\"tpa\":6,\"tpm\":2,\"fta\":4,\"ftm\":1,\"tov\":3,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-1-pl-10": {
+      "value": "{\"id\":\"gs-gm-1-pl-10\",\"gameId\":\"gm-1\",\"playerId\":\"pl-10\",\"min\":15,\"pts\":15,\"ast\":3,\"reb\":15,\"stl\":1,\"blk\":2,\"fga\":6,\"fgm\":5,\"tpa\":0,\"tpm\":0,\"fta\":3,\"ftm\":4,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-1": {
+      "value": "{\"id\":\"gs-gm-2-pl-1\",\"gameId\":\"gm-2\",\"playerId\":\"pl-1\",\"min\":25,\"pts\":21,\"ast\":12,\"reb\":3,\"stl\":1,\"blk\":1,\"fga\":18,\"fgm\":5,\"tpa\":4,\"tpm\":3,\"fta\":2,\"ftm\":2,\"tov\":3,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-2": {
+      "value": "{\"id\":\"gs-gm-2-pl-2\",\"gameId\":\"gm-2\",\"playerId\":\"pl-2\",\"min\":36,\"pts\":26,\"ast\":8,\"reb\":6,\"stl\":2,\"blk\":1,\"fga\":12,\"fgm\":6,\"tpa\":1,\"tpm\":0,\"fta\":5,\"ftm\":4,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-3": {
+      "value": "{\"id\":\"gs-gm-2-pl-3\",\"gameId\":\"gm-2\",\"playerId\":\"pl-3\",\"min\":33,\"pts\":19,\"ast\":2,\"reb\":8,\"stl\":2,\"blk\":0,\"fga\":9,\"fgm\":9,\"tpa\":4,\"tpm\":1,\"fta\":4,\"ftm\":2,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-4": {
+      "value": "{\"id\":\"gs-gm-2-pl-4\",\"gameId\":\"gm-2\",\"playerId\":\"pl-4\",\"min\":26,\"pts\":24,\"ast\":2,\"reb\":9,\"stl\":3,\"blk\":1,\"fga\":14,\"fgm\":10,\"tpa\":2,\"tpm\":3,\"fta\":2,\"ftm\":3,\"tov\":0,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-5": {
+      "value": "{\"id\":\"gs-gm-2-pl-5\",\"gameId\":\"gm-2\",\"playerId\":\"pl-5\",\"min\":23,\"pts\":17,\"ast\":4,\"reb\":14,\"stl\":3,\"blk\":0,\"fga\":11,\"fgm\":7,\"tpa\":1,\"tpm\":1,\"fta\":1,\"ftm\":2,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-6": {
+      "value": "{\"id\":\"gs-gm-2-pl-6\",\"gameId\":\"gm-2\",\"playerId\":\"pl-6\",\"min\":11,\"pts\":6,\"ast\":3,\"reb\":2,\"stl\":0,\"blk\":0,\"fga\":4,\"fgm\":2,\"tpa\":0,\"tpm\":0,\"fta\":0,\"ftm\":0,\"tov\":0,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-7": {
+      "value": "{\"id\":\"gs-gm-2-pl-7\",\"gameId\":\"gm-2\",\"playerId\":\"pl-7\",\"min\":17,\"pts\":8,\"ast\":9,\"reb\":5,\"stl\":1,\"blk\":1,\"fga\":7,\"fgm\":3,\"tpa\":6,\"tpm\":2,\"fta\":4,\"ftm\":1,\"tov\":3,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-8": {
+      "value": "{\"id\":\"gs-gm-2-pl-8\",\"gameId\":\"gm-2\",\"playerId\":\"pl-8\",\"min\":15,\"pts\":15,\"ast\":3,\"reb\":7,\"stl\":1,\"blk\":1,\"fga\":6,\"fgm\":5,\"tpa\":1,\"tpm\":2,\"fta\":3,\"ftm\":4,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-9": {
+      "value": "{\"id\":\"gs-gm-2-pl-9\",\"gameId\":\"gm-2\",\"playerId\":\"pl-9\",\"min\":14,\"pts\":11,\"ast\":6,\"reb\":5,\"stl\":1,\"blk\":2,\"fga\":10,\"fgm\":3,\"tpa\":4,\"tpm\":3,\"fta\":2,\"ftm\":2,\"tov\":3,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-2-pl-10": {
+      "value": "{\"id\":\"gs-gm-2-pl-10\",\"gameId\":\"gm-2\",\"playerId\":\"pl-10\",\"min\":20,\"pts\":14,\"ast\":5,\"reb\":13,\"stl\":2,\"blk\":2,\"fga\":7,\"fgm\":3,\"tpa\":0,\"tpm\":0,\"fta\":5,\"ftm\":4,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-1": {
+      "value": "{\"id\":\"gs-gm-4-pl-1\",\"gameId\":\"gm-4\",\"playerId\":\"pl-1\",\"min\":33,\"pts\":19,\"ast\":5,\"reb\":8,\"stl\":2,\"blk\":0,\"fga\":9,\"fgm\":9,\"tpa\":4,\"tpm\":1,\"fta\":4,\"ftm\":2,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-2": {
+      "value": "{\"id\":\"gs-gm-4-pl-2\",\"gameId\":\"gm-4\",\"playerId\":\"pl-2\",\"min\":30,\"pts\":12,\"ast\":7,\"reb\":3,\"stl\":2,\"blk\":0,\"fga\":17,\"fgm\":6,\"tpa\":7,\"tpm\":2,\"fta\":3,\"ftm\":0,\"tov\":2,\"pf\":1}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-3": {
+      "value": "{\"id\":\"gs-gm-4-pl-3\",\"gameId\":\"gm-4\",\"playerId\":\"pl-3\",\"min\":23,\"pts\":17,\"ast\":4,\"reb\":7,\"stl\":3,\"blk\":0,\"fga\":11,\"fgm\":7,\"tpa\":5,\"tpm\":4,\"fta\":1,\"ftm\":2,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-4": {
+      "value": "{\"id\":\"gs-gm-4-pl-4\",\"gameId\":\"gm-4\",\"playerId\":\"pl-4\",\"min\":20,\"pts\":10,\"ast\":1,\"reb\":4,\"stl\":0,\"blk\":0,\"fga\":8,\"fgm\":4,\"tpa\":0,\"tpm\":0,\"fta\":0,\"ftm\":0,\"tov\":0,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-5": {
+      "value": "{\"id\":\"gs-gm-4-pl-5\",\"gameId\":\"gm-4\",\"playerId\":\"pl-5\",\"min\":31,\"pts\":15,\"ast\":6,\"reb\":12,\"stl\":1,\"blk\":3,\"fga\":13,\"fgm\":5,\"tpa\":1,\"tpm\":0,\"fta\":4,\"ftm\":1,\"tov\":3,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-6": {
+      "value": "{\"id\":\"gs-gm-4-pl-6\",\"gameId\":\"gm-4\",\"playerId\":\"pl-6\",\"min\":15,\"pts\":15,\"ast\":7,\"reb\":7,\"stl\":1,\"blk\":1,\"fga\":6,\"fgm\":5,\"tpa\":1,\"tpm\":2,\"fta\":3,\"ftm\":4,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-7": {
+      "value": "{\"id\":\"gs-gm-4-pl-7\",\"gameId\":\"gm-4\",\"playerId\":\"pl-7\",\"min\":14,\"pts\":11,\"ast\":9,\"reb\":3,\"stl\":1,\"blk\":1,\"fga\":10,\"fgm\":3,\"tpa\":4,\"tpm\":3,\"fta\":2,\"ftm\":2,\"tov\":3,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-8": {
+      "value": "{\"id\":\"gs-gm-4-pl-8\",\"gameId\":\"gm-4\",\"playerId\":\"pl-8\",\"min\":20,\"pts\":14,\"ast\":5,\"reb\":6,\"stl\":2,\"blk\":1,\"fga\":7,\"fgm\":3,\"tpa\":1,\"tpm\":0,\"fta\":5,\"ftm\":4,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-9": {
+      "value": "{\"id\":\"gs-gm-4-pl-9\",\"gameId\":\"gm-4\",\"playerId\":\"pl-9\",\"min\":18,\"pts\":10,\"ast\":2,\"reb\":14,\"stl\":2,\"blk\":1,\"fga\":5,\"fgm\":5,\"tpa\":4,\"tpm\":1,\"fta\":4,\"ftm\":2,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-4-pl-10": {
+      "value": "{\"id\":\"gs-gm-4-pl-10\",\"gameId\":\"gm-4\",\"playerId\":\"pl-10\",\"min\":16,\"pts\":6,\"ast\":5,\"reb\":7,\"stl\":2,\"blk\":1,\"fga\":9,\"fgm\":4,\"tpa\":1,\"tpm\":0,\"fta\":3,\"ftm\":0,\"tov\":2,\"pf\":1}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-1": {
+      "value": "{\"id\":\"gs-gm-5-pl-1\",\"gameId\":\"gm-5\",\"playerId\":\"pl-1\",\"min\":23,\"pts\":17,\"ast\":9,\"reb\":7,\"stl\":3,\"blk\":0,\"fga\":11,\"fgm\":7,\"tpa\":5,\"tpm\":4,\"fta\":1,\"ftm\":2,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-2": {
+      "value": "{\"id\":\"gs-gm-5-pl-2\",\"gameId\":\"gm-5\",\"playerId\":\"pl-2\",\"min\":20,\"pts\":10,\"ast\":2,\"reb\":2,\"stl\":0,\"blk\":0,\"fga\":8,\"fgm\":4,\"tpa\":0,\"tpm\":0,\"fta\":0,\"ftm\":0,\"tov\":0,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-3": {
+      "value": "{\"id\":\"gs-gm-5-pl-3\",\"gameId\":\"gm-5\",\"playerId\":\"pl-3\",\"min\":34,\"pts\":23,\"ast\":4,\"reb\":4,\"stl\":0,\"blk\":1,\"fga\":16,\"fgm\":8,\"tpa\":3,\"tpm\":1,\"fta\":5,\"ftm\":3,\"tov\":2,\"pf\":1}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-4": {
+      "value": "{\"id\":\"gs-gm-5-pl-4\",\"gameId\":\"gm-5\",\"playerId\":\"pl-4\",\"min\":28,\"pts\":28,\"ast\":3,\"reb\":13,\"stl\":1,\"blk\":2,\"fga\":10,\"fgm\":8,\"tpa\":1,\"tpm\":2,\"fta\":3,\"ftm\":4,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-5": {
+      "value": "{\"id\":\"gs-gm-5-pl-5\",\"gameId\":\"gm-5\",\"playerId\":\"pl-5\",\"min\":25,\"pts\":21,\"ast\":6,\"reb\":6,\"stl\":1,\"blk\":2,\"fga\":18,\"fgm\":5,\"tpa\":1,\"tpm\":1,\"fta\":2,\"ftm\":2,\"tov\":3,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-6": {
+      "value": "{\"id\":\"gs-gm-5-pl-6\",\"gameId\":\"gm-5\",\"playerId\":\"pl-6\",\"min\":12,\"pts\":7,\"ast\":6,\"reb\":4,\"stl\":2,\"blk\":1,\"fga\":8,\"fgm\":5,\"tpa\":6,\"tpm\":4,\"fta\":1,\"ftm\":1,\"tov\":1,\"pf\":2}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-7": {
+      "value": "{\"id\":\"gs-gm-5-pl-7\",\"gameId\":\"gm-5\",\"playerId\":\"pl-7\",\"min\":18,\"pts\":10,\"ast\":4,\"reb\":8,\"stl\":2,\"blk\":0,\"fga\":5,\"fgm\":5,\"tpa\":4,\"tpm\":1,\"fta\":4,\"ftm\":2,\"tov\":1,\"pf\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-8": {
+      "value": "{\"id\":\"gs-gm-5-pl-8\",\"gameId\":\"gm-5\",\"playerId\":\"pl-8\",\"min\":16,\"pts\":6,\"ast\":5,\"reb\":3,\"stl\":2,\"blk\":0,\"fga\":9,\"fgm\":4,\"tpa\":7,\"tpm\":2,\"fta\":3,\"ftm\":0,\"tov\":2,\"pf\":1}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-9": {
+      "value": "{\"id\":\"gs-gm-5-pl-9\",\"gameId\":\"gm-5\",\"playerId\":\"pl-9\",\"min\":13,\"pts\":9,\"ast\":4,\"reb\":12,\"stl\":3,\"blk\":0,\"fga\":6,\"fgm\":4,\"tpa\":5,\"tpm\":4,\"fta\":1,\"ftm\":2,\"tov\":2,\"pf\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "gameStats:gs-gm-5-pl-10": {
+      "value": "{\"id\":\"gs-gm-5-pl-10\",\"gameId\":\"gm-5\",\"playerId\":\"pl-10\",\"min\":11,\"pts\":6,\"ast\":1,\"reb\":5,\"stl\":0,\"blk\":0,\"fga\":4,\"fgm\":2,\"tpa\":0,\"tpm\":0,\"fta\":0,\"ftm\":0,\"tov\":0,\"pf\":0}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "teamStats:ts-gm-1": {
+      "value": "{\"id\":\"ts-gm-1\",\"gameId\":\"gm-1\",\"fgPct\":48.2,\"tpPct\":37.5,\"ftPct\":81,\"reb\":42,\"ast\":21,\"tov\":11,\"stl\":8,\"blk\":5}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "teamStats:ts-gm-2": {
+      "value": "{\"id\":\"ts-gm-2\",\"gameId\":\"gm-2\",\"fgPct\":41,\"tpPct\":29.2,\"ftPct\":74.1,\"reb\":38,\"ast\":16,\"tov\":15,\"stl\":6,\"blk\":3}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "teamStats:ts-gm-4": {
+      "value": "{\"id\":\"ts-gm-4\",\"gameId\":\"gm-4\",\"fgPct\":51.4,\"tpPct\":42.1,\"ftPct\":78.9,\"reb\":46,\"ast\":25,\"tov\":9,\"stl\":11,\"blk\":7}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "teamStats:ts-gm-5": {
+      "value": "{\"id\":\"ts-gm-5\",\"gameId\":\"gm-5\",\"fgPct\":44.7,\"tpPct\":31,\"ftPct\":82.5,\"reb\":39,\"ast\":18,\"tov\":13,\"stl\":7,\"blk\":4}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "plays:play-pnr-right": {
+      "value": "{\"id\":\"play-pnr-right\",\"name\":\"Pick-and-Roll — Right Wing\",\"side\":\"offense\",\"category\":\"Set Plays\",\"tags\":[\"PnR\",\"Half Court\"],\"description\":\"Right-wing PnR — 5 sets the screen for 1; read defense for roll, pop, or kick-out.\",\"courtTemplate\":\"half\",\"sharedAt\":1778958977508,\"sharedBy\":\"Coach R. Patterson\",\"phases\":[{\"id\":\"ph-1\",\"label\":\"Setup\",\"positions\":{\"o1\":{\"x\":330,\"y\":300},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":330,\"y\":230}},\"drawings\":[]},{\"id\":\"ph-2\",\"label\":\"5 sets screen on 1’s defender\",\"positions\":{\"o1\":{\"x\":330,\"y\":300},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":320,\"y\":280}},\"drawings\":[{\"type\":\"screen\",\"x1\":320,\"y1\":280,\"x2\":330,\"y2\":300}]},{\"id\":\"ph-3\",\"label\":\"1 attacks, 5 rolls\",\"positions\":{\"o1\":{\"x\":380,\"y\":220},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":280,\"y\":160}},\"drawings\":[{\"type\":\"move\",\"x1\":330,\"y1\":300,\"x2\":380,\"y2\":220},{\"type\":\"move\",\"x1\":320,\"y1\":280,\"x2\":280,\"y2\":160}]},{\"id\":\"ph-4\",\"label\":\"Pocket pass to roller\",\"positions\":{\"o1\":{\"x\":380,\"y\":220},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":250,\"y\":90}},\"drawings\":[{\"type\":\"pass\",\"x1\":380,\"y1\":220,\"x2\":250,\"y2\":90}]}]}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "plays:play-horns": {
+      "value": "{\"id\":\"play-horns\",\"name\":\"Horns Flex\",\"side\":\"offense\",\"category\":\"Set Plays\",\"tags\":[\"Set Play\",\"Half Court\"],\"description\":\"Horns alignment — flex cut from corner uses the high-post big as a screener.\",\"courtTemplate\":\"half\",\"sharedAt\":1778786177508,\"sharedBy\":\"Coach R. Patterson\",\"phases\":[{\"id\":\"ph-1\",\"label\":\"Horns set\",\"positions\":{\"o1\":{\"x\":250,\"y\":380},\"o2\":{\"x\":60,\"y\":140},\"o3\":{\"x\":440,\"y\":140},\"o4\":{\"x\":175,\"y\":160},\"o5\":{\"x\":325,\"y\":160}},\"drawings\":[]},{\"id\":\"ph-2\",\"label\":\"2 flex-cuts off 5\",\"positions\":{\"o1\":{\"x\":250,\"y\":380},\"o2\":{\"x\":250,\"y\":80},\"o3\":{\"x\":440,\"y\":140},\"o4\":{\"x\":175,\"y\":160},\"o5\":{\"x\":325,\"y\":160}},\"drawings\":[{\"type\":\"move\",\"x1\":60,\"y1\":140,\"x2\":250,\"y2\":80},{\"type\":\"screen\",\"x1\":325,\"y1\":160,\"x2\":250,\"y2\":80}]},{\"id\":\"ph-3\",\"label\":\"Skip-and-pop\",\"positions\":{\"o1\":{\"x\":200,\"y\":340},\"o2\":{\"x\":250,\"y\":80},\"o3\":{\"x\":440,\"y\":140},\"o4\":{\"x\":120,\"y\":230},\"o5\":{\"x\":325,\"y\":160}},\"drawings\":[{\"type\":\"pass\",\"x1\":200,\"y1\":340,\"x2\":250,\"y2\":80}]}]}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "plays:play-5out": {
+      "value": "{\"id\":\"play-5out\",\"name\":\"5-Out Motion Open\",\"side\":\"offense\",\"category\":\"Continuity\",\"tags\":[\"Motion\",\"Continuity\"],\"description\":\"Free-flowing 5-out motion. Read-and-react.\",\"courtTemplate\":\"half\",\"sharedAt\":1778613377508,\"sharedBy\":\"Coach R. Patterson\",\"phases\":[{\"id\":\"ph-1\",\"label\":\"5-Out alignment\",\"positions\":{\"o1\":{\"x\":250,\"y\":390},\"o2\":{\"x\":60,\"y\":290},\"o3\":{\"x\":440,\"y\":290},\"o4\":{\"x\":100,\"y\":110},\"o5\":{\"x\":400,\"y\":110}},\"drawings\":[]},{\"id\":\"ph-2\",\"label\":\"Pass + basket cut\",\"positions\":{\"o1\":{\"x\":60,\"y\":290},\"o2\":{\"x\":250,\"y\":120},\"o3\":{\"x\":440,\"y\":290},\"o4\":{\"x\":100,\"y\":110},\"o5\":{\"x\":400,\"y\":110}},\"drawings\":[{\"type\":\"pass\",\"x1\":250,\"y1\":390,\"x2\":60,\"y2\":290},{\"type\":\"move\",\"x1\":250,\"y1\":390,\"x2\":250,\"y2\":120}]}]}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "plays:play-princeton": {
+      "value": "{\"id\":\"play-princeton\",\"name\":\"Princeton High Post\",\"side\":\"offense\",\"category\":\"Continuity\",\"tags\":[\"Continuity\"],\"description\":\"Princeton continuity — entry to high-post hub.\",\"courtTemplate\":\"half\",\"sharedAt\":1778440577508,\"sharedBy\":\"Coach R. Patterson\",\"phases\":[{\"id\":\"ph-1\",\"label\":\"Setup\",\"positions\":{\"o1\":{\"x\":250,\"y\":360},\"o2\":{\"x\":100,\"y\":230},\"o3\":{\"x\":400,\"y\":230},\"o4\":{\"x\":200,\"y\":110},\"o5\":{\"x\":300,\"y\":110}},\"drawings\":[]},{\"id\":\"ph-2\",\"label\":\"Chin entry\",\"positions\":{\"o1\":{\"x\":170,\"y\":300},\"o2\":{\"x\":100,\"y\":230},\"o3\":{\"x\":400,\"y\":230},\"o4\":{\"x\":250,\"y\":160},\"o5\":{\"x\":300,\"y\":110}},\"drawings\":[{\"type\":\"pass\",\"x1\":170,\"y1\":300,\"x2\":250,\"y2\":160}]},{\"id\":\"ph-3\",\"label\":\"Split + backdoor cut\",\"positions\":{\"o1\":{\"x\":330,\"y\":280},\"o2\":{\"x\":100,\"y\":230},\"o3\":{\"x\":400,\"y\":230},\"o4\":{\"x\":200,\"y\":180},\"o5\":{\"x\":250,\"y\":60}},\"drawings\":[{\"type\":\"pass\",\"x1\":200,\"y1\":180,\"x2\":250,\"y2\":60},{\"type\":\"screen\",\"x1\":200,\"y1\":180,\"x2\":330,\"y2\":280}]}]}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "plays:play-blob": {
+      "value": "{\"id\":\"play-blob\",\"name\":\"BLOB Box-1\",\"side\":\"offense\",\"category\":\"Inbounds\",\"tags\":[\"Inbounds\",\"Baseline\"],\"description\":\"Baseline out-of-bounds — box set with 1 as inbounder.\",\"courtTemplate\":\"half\",\"sharedAt\":1778267777508,\"sharedBy\":\"Coach R. Patterson\",\"phases\":[{\"id\":\"ph-1\",\"label\":\"Box set\",\"positions\":{\"o1\":{\"x\":250,\"y\":8},\"o2\":{\"x\":175,\"y\":160},\"o3\":{\"x\":325,\"y\":160},\"o4\":{\"x\":175,\"y\":60},\"o5\":{\"x\":325,\"y\":60}},\"drawings\":[]},{\"id\":\"ph-2\",\"label\":\"4 cross-screens for 2\",\"positions\":{\"o1\":{\"x\":250,\"y\":8},\"o2\":{\"x\":325,\"y\":160},\"o3\":{\"x\":325,\"y\":160},\"o4\":{\"x\":240,\"y\":140},\"o5\":{\"x\":325,\"y\":60}},\"drawings\":[{\"type\":\"screen\",\"x1\":240,\"y1\":140,\"x2\":175,\"y2\":160},{\"type\":\"move\",\"x1\":175,\"y1\":160,\"x2\":325,\"y2\":160}]}]}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "training:tr-1": {
+      "value": "{\"id\":\"tr-1\",\"title\":\"Princeton Install\",\"date\":\"2026-05-17\",\"startTime\":\"10:00\",\"endTime\":\"12:00\",\"location\":\"Practice Gym A\",\"objectives\":\"Backdoor cuts + chin entries. Light contact.\",\"createdBy\":\"Coach R. Patterson\"}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "training:tr-2": {
+      "value": "{\"id\":\"tr-2\",\"title\":\"Defensive Shell\",\"date\":\"2026-05-18\",\"startTime\":\"10:00\",\"endTime\":\"12:00\",\"location\":\"Practice Gym A\",\"objectives\":\"4v4 shell w/ ICE coverage. Communication focus.\",\"createdBy\":\"Coach R. Patterson\"}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "training:tr-3": {
+      "value": "{\"id\":\"tr-3\",\"title\":\"Walk-Through (Tigers)\",\"date\":\"2026-05-19\",\"startTime\":\"14:00\",\"endTime\":\"15:30\",\"location\":\"Film Room B\",\"objectives\":\"Tigers personnel + early offense.\",\"createdBy\":\"Coach R. Patterson\"}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "training:tr-4": {
+      "value": "{\"id\":\"tr-4\",\"title\":\"Shoot-Around\",\"date\":\"2026-05-20\",\"startTime\":\"10:30\",\"endTime\":\"11:30\",\"location\":\"Main Arena\",\"objectives\":\"Spot shooting + free throws.\",\"createdBy\":\"Coach R. Patterson\"}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "training:tr-5": {
+      "value": "{\"id\":\"tr-5\",\"title\":\"Strength Block A\",\"date\":\"2026-05-21\",\"startTime\":\"08:00\",\"endTime\":\"09:30\",\"location\":\"Weight Room\",\"objectives\":\"Lower body — squat / DL accessory.\",\"createdBy\":\"Trainer S. Wells\"}",
+      "updated_at": 1779131777508,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-1": {
+      "value": "{\"id\":\"at-pl-1\",\"playerId\":\"pl-1\",\"recordedAt\":1778872577509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":178,\"weightKg\":78,\"bodyFatPct\":8,\"wingspanCm\":185,\"verticalInches\":28,\"fortyYdSec\":4.85,\"benchMax\":145,\"squatMax\":215,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":178,\"weightKg\":76,\"bodyFatPct\":9,\"verticalInches\":27,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":178,\"weightKg\":77,\"bodyFatPct\":8,\"verticalInches\":27,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-2": {
+      "value": "{\"id\":\"at-pl-2\",\"playerId\":\"pl-2\",\"recordedAt\":1778786177509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":180,\"weightKg\":79,\"bodyFatPct\":9,\"wingspanCm\":187,\"verticalInches\":29,\"fortyYdSec\":4.8,\"benchMax\":153,\"squatMax\":225,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":180,\"weightKg\":77,\"bodyFatPct\":10,\"verticalInches\":28,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":180,\"weightKg\":78,\"bodyFatPct\":9,\"verticalInches\":28,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-3": {
+      "value": "{\"id\":\"at-pl-3\",\"playerId\":\"pl-3\",\"recordedAt\":1778699777509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":182,\"weightKg\":80,\"bodyFatPct\":10,\"wingspanCm\":189,\"verticalInches\":30,\"fortyYdSec\":4.75,\"benchMax\":161,\"squatMax\":235,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":182,\"weightKg\":78,\"bodyFatPct\":11,\"verticalInches\":29,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":182,\"weightKg\":79,\"bodyFatPct\":10,\"verticalInches\":29,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-4": {
+      "value": "{\"id\":\"at-pl-4\",\"playerId\":\"pl-4\",\"recordedAt\":1778613377509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":184,\"weightKg\":81,\"bodyFatPct\":11,\"wingspanCm\":191,\"verticalInches\":31,\"fortyYdSec\":4.7,\"benchMax\":169,\"squatMax\":245,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":184,\"weightKg\":79,\"bodyFatPct\":12,\"verticalInches\":30,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":184,\"weightKg\":80,\"bodyFatPct\":11,\"verticalInches\":30,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-5": {
+      "value": "{\"id\":\"at-pl-5\",\"playerId\":\"pl-5\",\"recordedAt\":1778526977509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":186,\"weightKg\":82,\"bodyFatPct\":12,\"wingspanCm\":193,\"verticalInches\":32,\"fortyYdSec\":4.85,\"benchMax\":177,\"squatMax\":255,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":186,\"weightKg\":80,\"bodyFatPct\":9,\"verticalInches\":31,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":186,\"weightKg\":81,\"bodyFatPct\":12,\"verticalInches\":31,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-6": {
+      "value": "{\"id\":\"at-pl-6\",\"playerId\":\"pl-6\",\"recordedAt\":1778440577509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":188,\"weightKg\":83,\"bodyFatPct\":8,\"wingspanCm\":195,\"verticalInches\":33,\"fortyYdSec\":4.8,\"benchMax\":185,\"squatMax\":265,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":188,\"weightKg\":81,\"bodyFatPct\":10,\"verticalInches\":32,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":188,\"weightKg\":82,\"bodyFatPct\":8,\"verticalInches\":32,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-7": {
+      "value": "{\"id\":\"at-pl-7\",\"playerId\":\"pl-7\",\"recordedAt\":1778354177509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":190,\"weightKg\":84,\"bodyFatPct\":9,\"wingspanCm\":197,\"verticalInches\":34,\"fortyYdSec\":4.75,\"benchMax\":193,\"squatMax\":275,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":190,\"weightKg\":82,\"bodyFatPct\":11,\"verticalInches\":27,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":190,\"weightKg\":83,\"bodyFatPct\":9,\"verticalInches\":33,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-8": {
+      "value": "{\"id\":\"at-pl-8\",\"playerId\":\"pl-8\",\"recordedAt\":1778267777509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":192,\"weightKg\":85,\"bodyFatPct\":10,\"wingspanCm\":199,\"verticalInches\":28,\"fortyYdSec\":4.7,\"benchMax\":201,\"squatMax\":285,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":192,\"weightKg\":83,\"bodyFatPct\":12,\"verticalInches\":28,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":192,\"weightKg\":84,\"bodyFatPct\":10,\"verticalInches\":27,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-9": {
+      "value": "{\"id\":\"at-pl-9\",\"playerId\":\"pl-9\",\"recordedAt\":1778181377509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":194,\"weightKg\":86,\"bodyFatPct\":11,\"wingspanCm\":201,\"verticalInches\":29,\"fortyYdSec\":4.85,\"benchMax\":209,\"squatMax\":295,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":194,\"weightKg\":84,\"bodyFatPct\":9,\"verticalInches\":29,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":194,\"weightKg\":85,\"bodyFatPct\":11,\"verticalInches\":28,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "attributes:at-pl-10": {
+      "value": "{\"id\":\"at-pl-10\",\"playerId\":\"pl-10\",\"recordedAt\":1778094977509,\"recordedBy\":\"Trainer S. Wells\",\"heightCm\":196,\"weightKg\":87,\"bodyFatPct\":12,\"wingspanCm\":203,\"verticalInches\":30,\"fortyYdSec\":4.8,\"benchMax\":217,\"squatMax\":305,\"history\":[{\"date\":\"2026-02-01\",\"heightCm\":196,\"weightKg\":85,\"bodyFatPct\":10,\"verticalInches\":30,\"recordedBy\":\"Trainer S. Wells\"},{\"date\":\"2026-04-01\",\"heightCm\":196,\"weightKg\":86,\"bodyFatPct\":12,\"verticalInches\":29,\"recordedBy\":\"Trainer S. Wells\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-bs": {
+      "value": "{\"id\":\"ex-bs\",\"name\":\"Back Squat\",\"category\":\"Strength\",\"muscleGroups\":[\"Quads\",\"Glutes\"],\"equipment\":\"Barbell\",\"difficulty\":\"Intermediate\",\"desc\":\"Compound lower-body strength.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-rdl": {
+      "value": "{\"id\":\"ex-rdl\",\"name\":\"Romanian Deadlift\",\"category\":\"Strength\",\"muscleGroups\":[\"Hamstrings\",\"Glutes\"],\"equipment\":\"Barbell\",\"difficulty\":\"Intermediate\",\"desc\":\"Hip-hinge hamstring builder.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-pp": {
+      "value": "{\"id\":\"ex-pp\",\"name\":\"Push Press\",\"category\":\"Strength\",\"muscleGroups\":[\"Shoulders\",\"Triceps\"],\"equipment\":\"Barbell\",\"difficulty\":\"Intermediate\",\"desc\":\"Explosive overhead press.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-pu": {
+      "value": "{\"id\":\"ex-pu\",\"name\":\"Pull-Up\",\"category\":\"Strength\",\"muscleGroups\":[\"Lats\",\"Biceps\"],\"equipment\":\"Bar\",\"difficulty\":\"Intermediate\",\"desc\":\"Vertical pulling.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-bj": {
+      "value": "{\"id\":\"ex-bj\",\"name\":\"Box Jump\",\"category\":\"Plyometric\",\"muscleGroups\":[\"Quads\",\"Calves\"],\"equipment\":\"Plyo Box\",\"difficulty\":\"Beginner\",\"desc\":\"Vertical jump development.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-mb": {
+      "value": "{\"id\":\"ex-mb\",\"name\":\"Med-Ball Slam\",\"category\":\"Plyometric\",\"muscleGroups\":[\"Core\",\"Lats\"],\"equipment\":\"Medicine Ball\",\"difficulty\":\"Beginner\",\"desc\":\"Total-body power.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-17": {
+      "value": "{\"id\":\"ex-17\",\"name\":\"17s — Sideline to Sideline\",\"category\":\"Conditioning\",\"muscleGroups\":[\"Full body\"],\"equipment\":\"None\",\"difficulty\":\"Intermediate\",\"desc\":\"Court sprint conditioning.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-9090": {
+      "value": "{\"id\":\"ex-9090\",\"name\":\"Hip 90/90\",\"category\":\"Mobility\",\"muscleGroups\":[\"Hips\"],\"equipment\":\"None\",\"difficulty\":\"Beginner\",\"desc\":\"Hip internal + external rotation.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-fr": {
+      "value": "{\"id\":\"ex-fr\",\"name\":\"Foam Roll — Lower Body\",\"category\":\"Recovery\",\"muscleGroups\":[\"Full body\"],\"equipment\":\"Foam Roller\",\"difficulty\":\"Beginner\",\"desc\":\"Soft tissue work.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-mik": {
+      "value": "{\"id\":\"ex-mik\",\"name\":\"Mikan Drill\",\"category\":\"Skill\",\"muscleGroups\":[\"Coordination\"],\"equipment\":\"Basketball\",\"difficulty\":\"Beginner\",\"desc\":\"Right/left finishes at the rim.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "exercises:ex-pln": {
+      "value": "{\"id\":\"ex-pln\",\"name\":\"Plank (Front)\",\"category\":\"Core\",\"muscleGroups\":[\"Core\"],\"equipment\":\"None\",\"difficulty\":\"Beginner\",\"desc\":\"Isometric core hold.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "workouts:wo-pl-1": {
+      "value": "{\"id\":\"wo-pl-1\",\"playerId\":\"pl-1\",\"title\":\"Guard Conditioning A\",\"assignedBy\":\"Trainer S. Wells\",\"assignedAt\":1778872577509,\"focus\":\"Conditioning + ball-handling\",\"status\":\"active\",\"blocks\":[{\"name\":\"Warm-up\",\"exercises\":[{\"exId\":\"ex-9090\",\"sets\":1,\"reps\":\"5 min\"}]},{\"name\":\"Strength\",\"exercises\":[{\"exId\":\"ex-bs\",\"sets\":4,\"reps\":\"6\"},{\"exId\":\"ex-rdl\",\"sets\":3,\"reps\":\"8\"},{\"exId\":\"ex-pu\",\"sets\":3,\"reps\":\"AMRAP\"}]},{\"name\":\"Court\",\"exercises\":[{\"exId\":\"ex-mik\",\"sets\":6,\"reps\":\"30s\"},{\"exId\":\"ex-17\",\"sets\":3,\"reps\":\"<65s\"}]}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "workouts:wo-pl-2": {
+      "value": "{\"id\":\"wo-pl-2\",\"playerId\":\"pl-2\",\"title\":\"Wing Power + C&S\",\"assignedBy\":\"Trainer S. Wells\",\"assignedAt\":1778786177509,\"focus\":\"Lower-body power + spot-up\",\"status\":\"active\",\"blocks\":[{\"name\":\"Power\",\"exercises\":[{\"exId\":\"ex-bj\",\"sets\":4,\"reps\":\"5\"},{\"exId\":\"ex-rdl\",\"sets\":4,\"reps\":\"5\"},{\"exId\":\"ex-mb\",\"sets\":3,\"reps\":\"8\"}]}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "workouts:wo-pl-5": {
+      "value": "{\"id\":\"wo-pl-5\",\"playerId\":\"pl-5\",\"title\":\"Big Block + Roll\",\"assignedBy\":\"Trainer S. Wells\",\"assignedAt\":1778699777509,\"focus\":\"Roll-to-rim speed\",\"status\":\"active\",\"blocks\":[{\"name\":\"Strength\",\"exercises\":[{\"exId\":\"ex-bs\",\"sets\":4,\"reps\":\"6\"},{\"exId\":\"ex-pp\",\"sets\":4,\"reps\":\"5\"}]}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "dietPlans:dt-pl-1": {
+      "value": "{\"id\":\"dt-pl-1\",\"playerId\":\"pl-1\",\"title\":\"Guard Fuel — In Season\",\"assignedBy\":\"Trainer S. Wells\",\"assignedAt\":1778613377509,\"status\":\"active\",\"kcal\":3000,\"protein\":180,\"carbs\":380,\"fat\":90,\"notes\":\"Carb-forward on practice days.\",\"meals\":[{\"time\":\"07:00\",\"name\":\"Breakfast\",\"items\":\"Oats + berries + 3 eggs + toast\"},{\"time\":\"12:30\",\"name\":\"Lunch\",\"items\":\"Chicken rice bowl + side salad\"},{\"time\":\"15:30\",\"name\":\"Pre-prac\",\"items\":\"Banana + PB toast\"},{\"time\":\"19:00\",\"name\":\"Dinner\",\"items\":\"Salmon + sweet potato + greens\"},{\"time\":\"21:30\",\"name\":\"Recovery\",\"items\":\"Cottage cheese + honey\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "dietPlans:dt-pl-5": {
+      "value": "{\"id\":\"dt-pl-5\",\"playerId\":\"pl-5\",\"title\":\"Big Man — Mass Maintain\",\"assignedBy\":\"Trainer S. Wells\",\"assignedAt\":1778440577509,\"status\":\"active\",\"kcal\":3800,\"protein\":220,\"carbs\":430,\"fat\":120,\"notes\":\"High-protein. Hydration 5L/day.\",\"meals\":[{\"time\":\"07:00\",\"name\":\"Breakfast\",\"items\":\"4 eggs + oats + protein shake\"},{\"time\":\"12:30\",\"name\":\"Lunch\",\"items\":\"Steak + rice + roasted veg\"},{\"time\":\"19:30\",\"name\":\"Dinner\",\"items\":\"Chicken + pasta + olive oil\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "injuries:inj-1": {
+      "value": "{\"id\":\"inj-1\",\"playerId\":\"pl-3\",\"title\":\"Left ankle sprain — Grade I\",\"occurredAt\":\"2026-04-22\",\"reportedBy\":\"Trainer S. Wells\",\"reportedAt\":1777749377509,\"severity\":\"Mild\",\"mechanism\":\"Stepped on opponent foot, mid-game vs Knights.\",\"bodyPart\":\"Left ankle\",\"status\":\"recovered\",\"treatment\":\"RICE 48h; band mobility days 3–7; return-to-play protocol days 7–10.\",\"timeline\":[{\"date\":\"2026-04-22\",\"note\":\"Injury occurred. ER ruled out fracture.\"},{\"date\":\"2026-04-30\",\"note\":\"Cleared for non-contact court work.\"},{\"date\":\"2026-05-03\",\"note\":\"Cleared for full contact.\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "injuries:inj-2": {
+      "value": "{\"id\":\"inj-2\",\"playerId\":\"pl-9\",\"title\":\"Right shoulder impingement\",\"occurredAt\":\"2026-05-10\",\"reportedBy\":\"Trainer S. Wells\",\"reportedAt\":1778526977509,\"severity\":\"Moderate\",\"mechanism\":\"Overuse — high volume shooting reps.\",\"bodyPart\":\"Right shoulder\",\"status\":\"active\",\"treatment\":\"PT 3x/week. No overhead pressing for 2 weeks.\",\"timeline\":[{\"date\":\"2026-05-10\",\"note\":\"Pain reported after practice. Imaging clean.\"},{\"date\":\"2026-05-12\",\"note\":\"Started PT. Cuban presses + scap stability.\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "injuries:inj-3": {
+      "value": "{\"id\":\"inj-3\",\"playerId\":\"pl-7\",\"title\":\"Left hamstring tightness\",\"occurredAt\":\"2026-05-13\",\"reportedBy\":\"Trainer S. Wells\",\"reportedAt\":1778786177509,\"severity\":\"Mild\",\"mechanism\":\"Acceleration during conditioning.\",\"bodyPart\":\"Left hamstring\",\"status\":\"monitoring\",\"treatment\":\"Daily soft tissue + eccentric hamstring work.\",\"timeline\":[{\"date\":\"2026-05-13\",\"note\":\"Reported tightness. No tear on palpation.\"}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "rotations:rt-gm-3": {
+      "value": "{\"id\":\"rt-gm-3\",\"gameId\":\"gm-3\",\"totalMinutes\":48,\"starters\":[\"pl-1\",\"pl-2\",\"pl-3\",\"pl-4\",\"pl-5\"],\"players\":[{\"playerId\":\"pl-1\",\"mins\":32,\"role\":\"Starter\",\"subFor\":null},{\"playerId\":\"pl-2\",\"mins\":31,\"role\":\"Starter\",\"subFor\":null},{\"playerId\":\"pl-3\",\"mins\":30,\"role\":\"Starter\",\"subFor\":null},{\"playerId\":\"pl-4\",\"mins\":29,\"role\":\"Starter\",\"subFor\":null},{\"playerId\":\"pl-5\",\"mins\":28,\"role\":\"Starter\",\"subFor\":null},{\"playerId\":\"pl-6\",\"mins\":16,\"role\":\"Bench\",\"subFor\":\"pl-1\"},{\"playerId\":\"pl-7\",\"mins\":14,\"role\":\"Bench\",\"subFor\":\"pl-2\"},{\"playerId\":\"pl-8\",\"mins\":15,\"role\":\"Bench\",\"subFor\":\"pl-3\"},{\"playerId\":\"pl-9\",\"mins\":16,\"role\":\"Bench\",\"subFor\":\"pl-4\"},{\"playerId\":\"pl-10\",\"mins\":14,\"role\":\"Bench\",\"subFor\":\"pl-5\"}],\"notes\":\"PG rotation: Marcus → Aiden at 6:00 of each quarter. Watch foul trouble on K. Brown.\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "videos:vd-1": {
+      "value": "{\"id\":\"vd-1\",\"title\":\"Princeton Chin — Game 4\",\"description\":\"Full play execution from gm-4.\",\"taggedPlayerIds\":[\"pl-1\",\"pl-3\",\"pl-4\",\"pl-5\"],\"has2DMap\":true,\"keyframeCount\":3,\"playId\":\"play-princeton\",\"uploadedAt\":1778872577509,\"uploadedBy\":\"Coach R. Patterson\",\"durationSec\":18.6,\"keyframes\":[{\"time\":0,\"players\":{\"o1\":{\"x\":250,\"y\":380},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":230},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":335,\"y\":95}}},{\"time\":9.6,\"players\":{\"o1\":{\"x\":330,\"y\":280},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":230},\"o4\":{\"x\":200,\"y\":180},\"o5\":{\"x\":250,\"y\":60}}},{\"time\":13,\"players\":{\"o1\":{\"x\":360,\"y\":250},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":230},\"o4\":{\"x\":200,\"y\":180},\"o5\":{\"x\":250,\"y\":55}}}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "videos:vd-2": {
+      "value": "{\"id\":\"vd-2\",\"title\":\"Spain PnR — Knights, Q3\",\"description\":\"Two reps in a row. 5 finishes the lob on the second.\",\"taggedPlayerIds\":[\"pl-1\",\"pl-2\",\"pl-4\",\"pl-5\"],\"has2DMap\":true,\"keyframeCount\":2,\"playId\":\"play-pnr-right\",\"uploadedAt\":1778699777509,\"uploadedBy\":\"Coach R. Patterson\",\"durationSec\":22.1,\"keyframes\":[{\"time\":0,\"players\":{\"o1\":{\"x\":330,\"y\":300},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":330,\"y\":230}}},{\"time\":18,\"players\":{\"o1\":{\"x\":380,\"y\":220},\"o2\":{\"x\":80,\"y\":230},\"o3\":{\"x\":420,\"y\":200},\"o4\":{\"x\":165,\"y\":95},\"o5\":{\"x\":250,\"y\":90}}}]}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "messages:msg-1": {
+      "value": "{\"id\":\"msg-1\",\"from\":{\"role\":\"coach\",\"name\":\"Coach R. Patterson\",\"userId\":\"coach-1\"},\"to\":{\"scope\":\"team\",\"teamId\":\"team:default\"},\"kind\":\"announcement\",\"subject\":\"Bus departs 7:30 Saturday\",\"body\":\"Light dinner at the hotel after walk-through.\",\"sentAt\":1779045377509,\"readBy\":{},\"threadId\":\"th-1\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "messages:msg-2": {
+      "value": "{\"id\":\"msg-2\",\"from\":{\"role\":\"coach\",\"name\":\"Coach R. Patterson\",\"userId\":\"coach-1\"},\"to\":{\"scope\":\"player\",\"playerId\":\"pl-1\"},\"kind\":\"direct\",\"subject\":\"Princeton starts\",\"body\":\"Marcus — you’re leading the chin entry on Saturday.\",\"sentAt\":1778958977509,\"readBy\":{\"trainer-1\":1779131855809},\"threadId\":\"th-2\",\"updatedAt\":1779131855809}",
+      "updated_at": 1779131855817,
+      "updated_by": "trainer-1"
+    },
+    "messages:msg-3": {
+      "value": "{\"id\":\"msg-3\",\"from\":{\"role\":\"trainer\",\"name\":\"Trainer S. Wells\",\"userId\":\"trainer-1\"},\"to\":{\"scope\":\"player\",\"playerId\":\"pl-1\"},\"kind\":\"direct\",\"subject\":\"Recovery check-in\",\"body\":\"How’s the ankle feeling? Strength block A is locked in.\",\"sentAt\":1778872577509,\"readBy\":{},\"threadId\":\"th-3\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    },
+    "messages:msg-4": {
+      "value": "{\"id\":\"msg-4\",\"from\":{\"role\":\"coach\",\"name\":\"Coach R. Patterson\",\"userId\":\"coach-1\"},\"to\":{\"scope\":\"team\",\"teamId\":\"team:default\"},\"kind\":\"announcement\",\"subject\":\"Profile verification deadline\",\"body\":\"Please complete your profile by Friday.\",\"sentAt\":1778526977509,\"readBy\":{},\"threadId\":\"th-4\"}",
+      "updated_at": 1779131777509,
+      "updated_by": "system"
+    }
+  },
+  "users": {
+    "coach-1": {
+      "email": "coach@team.example",
+      "password_hash": "4bd3f991252f88793a29f2576e9f9be6:56ef4317da2c3484eb7e548dae369be8d51ddbda502987b9f2b8bd4e4c2ffd6c77d1a10331640828a90bbb3bbd22e55f6a989d0522d69680cad14dfb89b42bfa",
+      "created_at": 1779131776931,
+      "id": "coach-1",
+      "role": "coach",
+      "name": "Coach R. Patterson",
+      "player_id": null,
+      "__pwd": "coach123"
+    },
+    "trainer-1": {
+      "email": "trainer@team.example",
+      "password_hash": "df17fe2a9d9df19871327dcf43f7af60:4a9c0610f00bdb0f2560b97728edcffb03f9e7e65ad5d7612c8ec148e34df473956fce04021e168ec4753e981ccbbb89765041dd7650cc3d416cda2085a912ed",
+      "created_at": 1779131776931,
+      "id": "trainer-1",
+      "role": "trainer",
+      "name": "Trainer S. Wells",
+      "player_id": null,
+      "__pwd": "trainer123"
+    },
+    "user-pl-1": {
+      "email": "pl-1@team.example",
+      "password_hash": "617141a7f5f546bc69b82ded7bc4348d:e96b75f4f14348e11ebec85e62cab2ebc5113a07b23987729ac1a514d119ef75d317335cc0f5c49dd979b9cf974202c72743b1d81646cade6aee7438a0a79bf9",
+      "created_at": 1779131776931,
+      "id": "user-pl-1",
+      "role": "player",
+      "name": "M. Anderson",
+      "player_id": "pl-1",
+      "__pwd": "player123"
+    },
+    "user-pl-2": {
+      "email": "pl-2@team.example",
+      "password_hash": "bb214cfd7c30863fae9ac6004a59ce11:be7efe8886f880b4b1d792baaf0bb5b44008922f69f99225fe3d7f622497cfce5a759ffc2ad868f162f19dc9b6a566cbe25316953a6f47c1c5a344b690fe1c70",
+      "created_at": 1779131776931,
+      "id": "user-pl-2",
+      "role": "player",
+      "name": "D. Wilson",
+      "player_id": "pl-2",
+      "__pwd": "player123"
+    },
+    "user-pl-3": {
+      "email": "pl-3@team.example",
+      "password_hash": "e2bfccde468f678e8a82229e18dcb082:afcf3602afc7afd252b8121fe54f312e27e65d78c28c52ef96a86c86dda0fcf0e9fad66f21bf29aa6e3336e6813b9d42d97cda8b8d4b9f9e4fc0516c6186f9dd",
+      "created_at": 1779131776931,
+      "id": "user-pl-3",
+      "role": "player",
+      "name": "J. Carter",
+      "player_id": "pl-3",
+      "__pwd": "player123"
+    },
+    "user-pl-4": {
+      "email": "pl-4@team.example",
+      "password_hash": "929d2fd168184f3f3b9349940657f93e:0eae04fc08e4d2a544d6e945faedb38ff44c4c07be7ac3bc2625669ff6f3b3aa7ce3ee937b5fbdc28d6c1833a6d90fcece7320fe1488d29680c7dfc1751a8c91",
+      "created_at": 1779131776931,
+      "id": "user-pl-4",
+      "role": "player",
+      "name": "K. Brown",
+      "player_id": "pl-4",
+      "__pwd": "player123"
+    },
+    "user-pl-5": {
+      "email": "pl-5@team.example",
+      "password_hash": "e2711b830ef397f66d1530c0b2e4599e:cf5a9087f673ecb91391e6f09318439f97720e3aeb4b854fac108dd683daa904a741d11b5d6f8311506f52dd2bf5641ab30801192168a8db94771369f2574659",
+      "created_at": 1779131776931,
+      "id": "user-pl-5",
+      "role": "player",
+      "name": "L. Mitchell",
+      "player_id": "pl-5",
+      "__pwd": "player123"
+    },
+    "user-pl-6": {
+      "email": "pl-6@team.example",
+      "password_hash": "dff6d2c03654a1129a9c671b8f8f637e:8d4bfcf008d6f48509c9f93d6ce024e5be96ec659d39311a38d9b87d58e870c0fb6f8336334c6e851d73bacdfe4f63cdcae6d47a0fafea5dca2344ac53dcb7e5",
+      "created_at": 1779131776931,
+      "id": "user-pl-6",
+      "role": "player",
+      "name": "A. Thompson",
+      "player_id": "pl-6",
+      "__pwd": "player123"
+    },
+    "user-pl-7": {
+      "email": "pl-7@team.example",
+      "password_hash": "ef659f25aae622c9e58a08f0fc5e57f4:11320bdc12cb964a6d389f3cacf8035a8194ac62d89038b8a2ec8feaf207a231b29cfb366677bd27569e007130a2e28f91328db172796514eda98d75457624c4",
+      "created_at": 1779131776931,
+      "id": "user-pl-7",
+      "role": "player",
+      "name": "R. Davis",
+      "player_id": "pl-7",
+      "__pwd": "player123"
+    },
+    "user-pl-8": {
+      "email": "pl-8@team.example",
+      "password_hash": "5fb1b5f119673742100d1749c0cc213a:1965a224c70d8e6fdbe876c864ec1e15ec59893753fddc11feb0406c978eef50e5cae1a76037c3160fce1feb612fbbcdb56b424d0226ce96fb224295a63126e8",
+      "created_at": 1779131776931,
+      "id": "user-pl-8",
+      "role": "player",
+      "name": "C. Martinez",
+      "player_id": "pl-8",
+      "__pwd": "player123"
+    },
+    "user-pl-9": {
+      "email": "pl-9@team.example",
+      "password_hash": "27a6ccd2dca532f3126989d519e52d1e:fc8db76984f7ac5c0683031ac1bb8eeab9d3bda451c84d942176b73481f52981978c11dc8838bd52157c3949fa95efc1579a735bb35f23876ff70b4a3b7d5b7d",
+      "created_at": 1779131776931,
+      "id": "user-pl-9",
+      "role": "player",
+      "name": "B. White",
+      "player_id": "pl-9",
+      "__pwd": "player123"
+    },
+    "user-pl-10": {
+      "email": "pl-10@team.example",
+      "password_hash": "7e79411e7de2d001a86437418467eff8:541320cd38e506026bdbd04df50170654ed1da685f873658848cf4f8c47c15ca088089041b50f8b94f982c358f5662ed98447dde5f77ea6680e38a8c1d14035d",
+      "created_at": 1779131776931,
+      "id": "user-pl-10",
+      "role": "player",
+      "name": "T. Hall",
+      "player_id": "pl-10",
+      "__pwd": "player123"
+    }
+  },
+  "audit": [
+    {
+      "occurred_at": 1779131789665,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.login",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131797289,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "kv.set",
+      "prefix": "playerProfiles",
+      "key": "pp-pl-6",
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131814844,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.logout",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131817551,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.login",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131830439,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.logout",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131832769,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.login",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131850936,
+      "user_id": "coach-1",
+      "role": "coach",
+      "action": "auth.logout",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131853167,
+      "user_id": "trainer-1",
+      "role": "trainer",
+      "action": "auth.login",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131855817,
+      "user_id": "trainer-1",
+      "role": "trainer",
+      "action": "kv.set",
+      "prefix": "messages",
+      "key": "msg-2",
+      "detail": null
+    },
+    {
+      "occurred_at": 1779131865909,
+      "user_id": "user-pl-3",
+      "role": "player",
+      "action": "auth.login",
+      "prefix": null,
+      "key": null,
+      "detail": null
+    }
+  ]
+}
