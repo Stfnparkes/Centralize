@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centralize — Personnel Management</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root {
+    --bg-base: #f8f6f3;
+    --accent: #0d9488;
+    --accent-hover: #0f766e;
+    --accent-soft: #ccfbf1;
+    --verified: #059669;
+  }
+  html, body, #root { height: 100%; margin: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg-base); color: #0c0a09; overflow: hidden; }
+  .font-display { font-family: 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -0.01em; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .canvas-bg { background-image: radial-gradient(circle at 25% 15%, rgba(13, 148, 136, 0.04) 0%, transparent 35%), linear-gradient(180deg, #f8f6f3 0%, #f3efe9 100%); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 4px; }
+  .btn-press:active { transform: translateY(1px) scale(0.98); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="runtime.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext, Fragment } = React;
+
+const Storage = {
+  async get(k){ if(!window.storage) return null; try { const r = await window.storage.get(k); return r?.value ? JSON.parse(r.value) : null; } catch { return null; } },
+  async set(k,v){ if(!window.storage) return false; try { await window.storage.set(k, JSON.stringify(v)); return true; } catch { return false; } },
+  async delete(k){ if(!window.storage) return false; try { await window.storage.delete(k); return true; } catch { return false; } },
+  async list(p){ if(!window.storage) return []; try { const r = await window.storage.list(p); return r?.keys || []; } catch { return []; } },
+};
+if (typeof window !== 'undefined' && !window.storage) {
+  const mem = {};
+  window.storage = {
+    async get(k){ if(!(k in mem)) throw new Error('not found'); return { value: mem[k] }; },
+    async set(k,v){ mem[k] = v; return true; },
+    async delete(k){ delete mem[k]; return true; },
+    async list(p){ return { keys: Object.keys(mem).filter(k => k.startsWith(p)) }; },
+  };
+}
+
+function useCollection(prefix, defaults = []) {
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const keys = await Storage.list(`${prefix}:`);
+      const seeded = await Storage.get(`${prefix}:__seeded`);
+      const itemKeys = keys.filter((k) => !k.endsWith(':__seeded'));
+      const all = await Promise.all(itemKeys.map((k) => Storage.get(k)));
+      const valid = all.filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      if (!seeded && valid.length === 0 && defaults.length > 0) {
+        await Storage.set(`${prefix}:__seeded`, true);
+        for (const d of defaults) await Storage.set(`${prefix}:${d.id}`, { ...d, updatedAt: d.updatedAt || Date.now() });
+        if (!cancelled) setItems([...defaults]);
+      } else if (!cancelled) setItems(valid);
+      if (!cancelled) setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [prefix]);
+  const save = useCallback(async (item) => {
+    const id = item.id || `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const next = { ...item, id, updatedAt: Date.now() };
+    await Storage.set(`${prefix}:${id}`, next);
+    setItems((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return [next, ...prev];
+      const arr = [...prev]; arr[idx] = next; return arr;
+    });
+    return next;
+  }, [prefix]);
+  const remove = useCallback(async (id) => {
+    await Storage.delete(`${prefix}:${id}`);
+    setItems((prev) => prev.filter((p) => p.id !== id));
+  }, [prefix]);
+  return { items, save, remove, loaded };
+}
+function useStored(key, initial) {
+  const [value, setValue] = useState(initial);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { let c=false; (async () => { const v = await Storage.get(key); if (!c) { if (v !== null) setValue(v); setLoaded(true); } })(); return () => { c = true; }; }, [key]);
+  const set = useCallback((v) => setValue(prev => { const n = typeof v === 'function' ? v(prev) : v; Storage.set(key, n); return n; }), [key]);
+  return [value, set, loaded];
+}
+
+const newId = (p) => `${p}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+function fmtRel(ts){ if(!ts) return '—'; const s=Math.round((Date.now()-ts)/1000); if(s<60) return s+'s ago'; const m=Math.round(s/60); if(m<60) return m+'m ago'; const h=Math.round(m/60); if(h<24) return h+'h ago'; return Math.round(h/24)+'d ago'; }
+
+const SEED_ROSTER = [
+  { id:'pl-1',  number:4,  name:'M. Anderson', position:'PG' },
+  { id:'pl-2',  number:7,  name:'D. Wilson',   position:'SG' },
+  { id:'pl-3',  number:23, name:'J. Carter',   position:'SF' },
+  { id:'pl-4',  number:32, name:'K. Brown',    position:'PF' },
+  { id:'pl-5',  number:55, name:'L. Mitchell', position:'C'  },
+  { id:'pl-6',  number:1,  name:'A. Thompson', position:'PG' },
+  { id:'pl-7',  number:11, name:'R. Davis',    position:'SG' },
+  { id:'pl-8',  number:21, name:'C. Martinez', position:'SF' },
+  { id:'pl-9',  number:34, name:'B. White',    position:'PF' },
+  { id:'pl-10', number:42, name:'T. Hall',     position:'C'  },
+];
+const SEED_GAMES = [
+  { id:'gm-1', opponent:'Riverside Knights', date:'2026-05-09', season:'2025-26', homeAway:'home', teamScore:89, oppScore:88, status:'completed' },
+  { id:'gm-2', opponent:'Eastside Eagles',   date:'2026-05-04', season:'2025-26', homeAway:'away', teamScore:76, oppScore:81, status:'completed' },
+  { id:'gm-3', opponent:'Central Tigers',    date:'2026-05-18', season:'2025-26', homeAway:'home', teamScore:null, oppScore:null, status:'scheduled' },
+  { id:'gm-4', opponent:'Northgate Wolves',  date:'2026-04-26', season:'2025-26', homeAway:'home', teamScore:93, oppScore:78, status:'completed' },
+  { id:'gm-5', opponent:'Harbor Sharks',     date:'2026-04-19', season:'2025-26', homeAway:'away', teamScore:71, oppScore:69, status:'completed' },
+];
+const TEAM_PROFILE_DEFAULT = { id:'team:default', name:'Centralize Crusaders', coach:'Coach R. Patterson', colour:'#0d9488', season:'2025-26', offensivePlays:'Princeton, 5-Out, Spain PnR', defensivePlays:'Pack-Line, 2-3 Zone, Switch Everything' };
+const SEED_TEAM_PROFILE = [TEAM_PROFILE_DEFAULT];
+
+function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  const sizes = { sm:'max-w-md', md:'max-w-lg', lg:'max-w-2xl', xl:'max-w-4xl' };
+  return (
+    <div className="fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[92vh] flex flex-col`} onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-stone-900">{title}</h2>
+            {subtitle && <p className="text-[12.5px] text-stone-500 mt-0.5">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 p-1.5 rounded hover:bg-stone-100">✕</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        {footer && <div className="px-5 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-end gap-2 rounded-b-2xl">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+function ConfirmDialog({ open, onConfirm, onCancel, title, message, confirmLabel='Delete', danger=true }) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title} size="sm"
+      footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onConfirm} className={`px-3.5 py-2 text-[13px] font-semibold text-white rounded-md btn-press ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-teal-600 hover:bg-teal-700'}`}>{confirmLabel}</button>
+      </>}>
+      <p className="text-[14px] text-stone-700 leading-relaxed">{message}</p>
+    </Modal>
+  );
+}
+function TextField({ label, value, onChange, type='text', placeholder, required }){
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}{required && <span className="text-red-600 ml-0.5">*</span>}</span>
+      <input type={type} value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"/>
+    </label>
+  );
+}
+function NumberField({ label, value, onChange, min, max, placeholder }){
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <input type="number" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+        min={min} max={max} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"/>
+    </label>
+  );
+}
+function SelectField({ label, value, onChange, options }){
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <select value={value || ''} onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white">
+        {options.map((o) => <option key={o.value || o} value={o.value || o}>{o.label || o}</option>)}
+      </select>
+    </label>
+  );
+}
+function TextArea({ label, value, onChange, rows=4, placeholder }){
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <textarea value={value || ''} onChange={(e) => onChange(e.target.value)} rows={rows} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none"/>
+    </label>
+  );
+}
+function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div className="px-7 py-5 border-b border-stone-200 bg-white flex items-start justify-between gap-4">
+      <div>
+        <h1 className="font-display text-[22px] font-semibold text-stone-900">{title}</h1>
+        {subtitle && <p className="text-[13px] text-stone-500 mt-1">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+    </div>
+  );
+}
+function VerifiedBadge({ p, compact=false }){
+  if (p?.verified) return (
+    <span className={`inline-flex items-center gap-1 ${compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'} rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200`}
+      title={`Verified by ${p.verifiedBy || 'coach'} ${p.verifiedAt ? fmtRel(p.verifiedAt) : ''}`}>
+      ✓ {compact ? '' : 'Verified'}
+    </span>
+  );
+  return <span className={`inline-flex items-center gap-1 ${compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'} rounded-full bg-amber-50 text-amber-700 font-medium border border-amber-200`}>{compact ? '!' : 'Unverified'}</span>;
+}
+
+const RouterCtx = createContext({ route:'verify', params:{}, go:()=>{} });
+const useRouter = () => useContext(RouterCtx);
+
+function VerifyPage(){
+  const profiles = useCollection('playerProfiles', []);
+  const roster = useCollection('roster', SEED_ROSTER);
+  const [activePid, setActivePid] = useState(null);
+  const [filter, setFilter] = useState('all');
+  const COACH_NAME = 'Coach R. Patterson';
+
+  const rows = useMemo(() => {
+    return roster.items.map(r => ({ player: r, profile: profiles.items.find(p => p.playerId === r.id) }))
+      .filter(x => filter === 'all' ? true : filter === 'verified' ? x.profile?.verified : !x.profile?.verified)
+      .sort((a,b) => a.player.number - b.player.number);
+  }, [roster.items, profiles.items, filter]);
+  const active = profiles.items.find(p => p.playerId === activePid);
+  const activePlayer = roster.items.find(r => r.id === activePid);
+
+  const toggleVerify = async (profile, v) => {
+    await profiles.save({ ...profile, verified: v, verifiedBy: v ? COACH_NAME : null, verifiedAt: v ? Date.now() : null });
+  };
+  const verifyAll = async () => {
+    for (const p of profiles.items.filter(p => !p.verified)) {
+      await profiles.save({ ...p, verified: true, verifiedBy: COACH_NAME, verifiedAt: Date.now() });
+    }
+  };
+
+  const unverifiedCount = profiles.items.filter(p => !p.verified).length;
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Verify roster" subtitle="Review and verify player-submitted profiles."
+        actions={<button onClick={verifyAll} disabled={unverifiedCount === 0}
+          className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press disabled:bg-stone-300">
+          Verify all ({unverifiedCount})
+        </button>}/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        {[['all','All'],['unverified','Unverified'],['verified','Verified']].map(([id,l]) => (
+          <button key={id} onClick={() => setFilter(id)}
+            className={`px-3 py-1.5 text-[12px] font-semibold rounded-md ${filter === id ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{l}</button>
+        ))}
+      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-96 border-r border-stone-200 bg-white overflow-y-auto">
+          {rows.map(({ player, profile }) => (
+            <button key={player.id} onClick={() => setActivePid(player.id)}
+              className={`w-full text-left px-4 py-3 border-b border-stone-100 hover:bg-stone-50 ${activePid === player.id ? 'bg-teal-50/60' : ''}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-stone-300 to-stone-500 text-white text-[12px] font-bold flex items-center justify-center shrink-0">{player.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10.5px] font-mono font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">#{player.number}</span>
+                    <span className="text-[12px] text-stone-500">{player.position}</span>
+                  </div>
+                  <div className="text-[13px] font-semibold text-stone-900 truncate">{profile?.fullName || player.name}</div>
+                  <div className="mt-1"><VerifiedBadge p={profile} compact/></div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <div className="flex-1 overflow-y-auto p-7 bg-stone-50/50">
+          {!active && activePlayer && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 max-w-xl">
+              <div className="font-display text-[15px] font-semibold text-stone-900">No profile submitted yet</div>
+              <p className="text-[12.5px] text-stone-700 mt-1">{activePlayer.name} hasn’t completed PROF-01 yet.</p>
+            </div>
+          )}
+          {!active && !activePlayer && <div className="text-stone-500 text-[13px]">Select a player to review their profile.</div>}
+          {active && activePlayer && (
+            <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-stone-200 p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  {active.photoDataUrl ? <img src={active.photoDataUrl} className="w-20 h-20 rounded-full object-cover border-4 border-stone-100"/>
+                    : <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 text-white font-display text-2xl font-bold flex items-center justify-center border-4 border-stone-100">{(active.fullName || activePlayer.name).split(' ').map(w=>w[0]).join('').slice(0,2)}</div>}
+                  <div>
+                    <div className="font-display text-xl font-bold text-stone-900">{active.fullName || activePlayer.name}</div>
+                    <div className="text-[12.5px] text-stone-500">#{active.jerseyNumber || activePlayer.number} • {active.position || activePlayer.position}</div>
+                    <div className="mt-2"><VerifiedBadge p={active}/></div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {active.verified ? (
+                    <button onClick={() => toggleVerify(active, false)} className="px-3 py-2 text-[12.5px] font-semibold rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 btn-press">Revoke verification</button>
+                  ) : (
+                    <button onClick={() => toggleVerify(active, true)} className="px-3 py-2 text-[12.5px] font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 btn-press">✓ Verify profile</button>
+                  )}
+                </div>
+              </div>
+              <dl className="grid grid-cols-2 gap-y-3 gap-x-6 text-[13px] mt-6 pt-5 border-t border-stone-100">
+                <Row label="Full name" v={active.fullName}/>
+                <Row label="Date of birth" v={active.dateOfBirth}/>
+                <Row label="Age" v={active.age}/>
+                <Row label="Height" v={active.height}/>
+                <Row label="Weight (lb)" v={active.weight}/>
+                <Row label="Jersey #" v={active.jerseyNumber}/>
+                <Row label="Position" v={active.position}/>
+                <Row label="Phone" v={active.contactPhone}/>
+                <Row label="Email" v={active.contactEmail}/>
+                {active.bio && <div className="col-span-2"><Row label="Bio" v={active.bio}/></div>}
+              </dl>
+              {active.verified && (
+                <div className="mt-5 pt-4 border-t border-stone-100 text-[11.5px] text-emerald-700">
+                  Verified by {active.verifiedBy} • {fmtRel(active.verifiedAt)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+function Row({ label, v }) {
+  return (
+    <div>
+      <dt className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{label}</dt>
+      <dd className="text-stone-900 mt-0.5">{v ?? <span className="text-stone-400">—</span>}</dd>
+    </div>
+  );
+}
+
+function GamesPage(){
+  const games = useCollection('games', SEED_GAMES);
+  const [editing, setEditing] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+
+  const open = (g) => setEditing(g || { id:null, opponent:'', date:'', season:'2025-26', homeAway:'home', teamScore:null, oppScore:null, status:'scheduled' });
+  const save = async () => {
+    if (!editing) return;
+    let next = { ...editing };
+    if ((next.teamScore != null && next.oppScore != null) && next.status === 'scheduled') next.status = 'completed';
+    if (!next.id) next.id = newId('gm');
+    await games.save(next); setEditing(null);
+  };
+  const sorted = [...games.items].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Games" subtitle="Create, edit, and delete game records."
+        actions={<button onClick={() => open(null)} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press">+ New game</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+              <th className="text-left py-2.5 px-4 font-semibold">Date</th>
+              <th className="text-left font-semibold">Opponent</th>
+              <th className="text-left font-semibold">Season</th>
+              <th className="text-center font-semibold">H/A</th>
+              <th className="text-center font-semibold">Score</th>
+              <th className="text-center font-semibold">Status</th>
+              <th className="text-right font-semibold px-4">Actions</th>
+            </tr></thead>
+            <tbody>
+              {sorted.map(g => (
+                <tr key={g.id} className="border-t border-stone-100 hover:bg-stone-50">
+                  <td className="py-2.5 px-4 font-mono text-stone-700">{g.date}</td>
+                  <td className="text-stone-900 font-medium">{g.opponent}</td>
+                  <td className="text-stone-600 text-[12px]">{g.season}</td>
+                  <td className="text-center text-stone-700 text-[12px] uppercase">{g.homeAway}</td>
+                  <td className="text-center font-mono">{g.status === 'completed' ? `${g.teamScore}–${g.oppScore}` : '—'}</td>
+                  <td className="text-center"><span className={`px-2 py-0.5 text-[11px] rounded font-semibold ${g.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-700'}`}>{g.status}</span></td>
+                  <td className="text-right px-4 space-x-2">
+                    <button onClick={() => open(g)} className="text-[12px] text-teal-700 hover:underline">Edit</button>
+                    <button onClick={() => setConfirm(g)} className="text-[12px] text-red-600 hover:underline">Delete</button>
+                  </td>
+                </tr>
+              ))}
+              {sorted.length === 0 && <tr><td colSpan={7} className="text-center text-stone-500 py-6">No games yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit game' : 'New game'} subtitle="Game record"
+        footer={<>
+          <button onClick={() => setEditing(null)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={save} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-teal-600 hover:bg-teal-700 btn-press">Save</button>
+        </>}>
+        {editing && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <TextField label="Opponent" value={editing.opponent} onChange={v => setEditing({...editing, opponent:v})} required/>
+            <TextField label="Date" type="date" value={editing.date} onChange={v => setEditing({...editing, date:v})} required/>
+            <TextField label="Season" value={editing.season} onChange={v => setEditing({...editing, season:v})}/>
+            <SelectField label="Home / Away" value={editing.homeAway} onChange={v => setEditing({...editing, homeAway:v})}
+              options={[{value:'home',label:'Home'},{value:'away',label:'Away'}]}/>
+            <NumberField label="Team score" value={editing.teamScore} onChange={v => setEditing({...editing, teamScore:v})} min={0}/>
+            <NumberField label="Opponent score" value={editing.oppScore} onChange={v => setEditing({...editing, oppScore:v})} min={0}/>
+            <SelectField label="Status" value={editing.status} onChange={v => setEditing({...editing, status:v})}
+              options={[{value:'scheduled',label:'Scheduled'},{value:'completed',label:'Completed'}]}/>
+          </div>
+        )}
+      </Modal>
+      <ConfirmDialog open={!!confirm} onCancel={() => setConfirm(null)}
+        onConfirm={async () => { await games.remove(confirm.id); setConfirm(null); }}
+        title="Delete game?" message={`This will delete the ${confirm?.opponent} game and unlink any stats.`}/>
+    </div>
+  );
+}
+
+function StatsPage(){
+  const games = useCollection('games', SEED_GAMES);
+  const stats = useCollection('gameStats', []);
+  const teamStats = useCollection('teamStats', []);
+  const roster = useCollection('roster', SEED_ROSTER);
+  const [gameId, setGameId] = useState('');
+  const completed = useMemo(() => games.items.filter(g => g.status === 'completed').sort((a,b) => (b.date||'').localeCompare(a.date||'')), [games.items]);
+  useEffect(() => { if (!gameId && completed.length) setGameId(completed[0].id); }, [completed, gameId]);
+  const game = games.items.find(g => g.id === gameId);
+
+  const lines = useMemo(() => {
+    if (!game) return [];
+    const byPid = Object.fromEntries(stats.items.filter(s => s.gameId === gameId).map(s => [s.playerId, s]));
+    return roster.items.sort((a,b) => a.number - b.number).map(p => byPid[p.id] || ({
+      id:null, gameId, playerId: p.id, min:0, pts:0, ast:0, reb:0, stl:0, blk:0, fga:0, fgm:0, tpa:0, tpm:0, fta:0, ftm:0, tov:0, pf:0,
+    }));
+  }, [roster.items, stats.items, gameId, game]);
+  const teamRow = teamStats.items.find(t => t.gameId === gameId) || ({ id:null, gameId, fgPct:0, tpPct:0, ftPct:0, reb:0, ast:0, tov:0, stl:0, blk:0 });
+
+  const [draft, setDraft] = useState({});
+  const [teamDraft, setTeamDraft] = useState({});
+  useEffect(() => {
+    if (!game) return;
+    const d = {}; for (const l of lines) d[l.playerId] = { ...l };
+    setDraft(d);
+    setTeamDraft({ ...teamRow });
+  }, [gameId, lines.length]);
+
+  const setCell = (pid, k, v) => setDraft(d => ({ ...d, [pid]: { ...d[pid], [k]: Number(v)||0 } }));
+  const saveAll = async () => {
+    for (const pid of Object.keys(draft)) {
+      const row = draft[pid];
+      await stats.save({ ...row, id: row.id || `gs-${gameId}-${pid}`, gameId });
+    }
+    await teamStats.save({ ...teamDraft, id: teamDraft.id || `ts-${gameId}`, gameId });
+  };
+  const numCols = ['min','pts','ast','reb','stl','blk','fga','fgm','tpa','tpm','fta','ftm','tov','pf'];
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Stat entry" subtitle="Per-game player and team stats."
+        actions={<button onClick={saveAll} disabled={!game} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press disabled:bg-stone-300">Save all</button>}/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <select value={gameId} onChange={e => setGameId(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="">— pick a game —</option>
+          {completed.map(g => <option key={g.id} value={g.id}>{g.date} • {g.homeAway === 'home' ? 'vs' : '@'} {g.opponent}</option>)}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        {!game ? <div className="text-stone-500 text-[13px]">Pick a completed game.</div> : (
+          <>
+            <div className="bg-white border border-stone-200 rounded-xl overflow-hidden mb-5">
+              <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-200 font-display text-[14px] font-semibold text-stone-900">Player lines (STAT-01)</div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[12px]">
+                  <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                    <th className="text-left py-1.5 px-3 font-semibold">#</th>
+                    <th className="text-left font-semibold">Player</th>
+                    {numCols.map(k => <th key={k} className="text-right font-semibold px-1 uppercase">{k}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {roster.items.sort((a,b) => a.number - b.number).map(p => {
+                      const row = draft[p.id]; if (!row) return null;
+                      return (
+                        <tr key={p.id} className="border-t border-stone-50">
+                          <td className="py-1.5 px-3 font-mono text-stone-500">{p.number}</td>
+                          <td className="text-stone-800 font-medium">{p.name}</td>
+                          {numCols.map(k => (
+                            <td key={k} className="px-0.5">
+                              <input type="number" value={row[k] ?? 0} onChange={e => setCell(p.id, k, e.target.value)}
+                                className="w-12 px-1.5 py-1 text-right text-[12px] font-mono border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"/>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Team stats (STAT-02)</div>
+              <div className="grid grid-cols-4 gap-3">
+                {[['fgPct','FG %'],['tpPct','3P %'],['ftPct','FT %'],['reb','REB'],['ast','AST'],['tov','TOV'],['stl','STL'],['blk','BLK']].map(([k,l]) => (
+                  <label key={k} className="block">
+                    <span className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{l}</span>
+                    <input type="number" step="0.1" value={teamDraft[k] ?? 0} onChange={e => setTeamDraft(d => ({ ...d, [k]: Number(e.target.value)||0 }))}
+                      className="mt-1 w-full px-3 py-2 text-[13px] font-mono border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"/>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TeamProfilePage(){
+  const teamProfile = useCollection('teamProfile', SEED_TEAM_PROFILE);
+  const roster = useCollection('roster', SEED_ROSTER);
+  const [editing, setEditing] = useState(null);
+  const [draftPlayer, setDraftPlayer] = useState(null);
+  const [confirmRm, setConfirmRm] = useState(null);
+  const t = teamProfile.items[0];
+
+  const startEdit = () => setEditing({ ...t });
+  const saveTeam = async () => { if (editing) { await teamProfile.save({ ...editing, id: t?.id || 'team:default' }); setEditing(null); } };
+  const openPlayer = (p) => setDraftPlayer(p ? { ...p } : { id:null, number:0, name:'', position:'PG' });
+  const savePlayer = async () => { if (!draftPlayer) return; await roster.save({ ...draftPlayer, id: draftPlayer.id || newId('pl') }); setDraftPlayer(null); };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Team profile" subtitle="Team identity and roster management."
+        actions={<button onClick={startEdit} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press">Edit team</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        {t && (
+          <div className="grid grid-cols-12 gap-5 mb-5">
+            <div className="col-span-12 lg:col-span-5 bg-white border border-stone-200 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: t.colour }}/>
+                <div>
+                  <div className="font-display text-lg font-bold text-stone-900">{t.name}</div>
+                  <div className="text-[12px] text-stone-500">{t.coach} • {t.season}</div>
+                </div>
+              </div>
+              <dl className="grid grid-cols-2 gap-y-3 gap-x-6 text-[13px] pt-4 border-t border-stone-100">
+                <Row label="Season" v={t.season}/>
+                <Row label="Players" v={roster.items.length}/>
+                <Row label="Colour" v={t.colour}/>
+                <Row label="Coach" v={t.coach}/>
+              </dl>
+            </div>
+            <div className="col-span-12 lg:col-span-7 bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Play tendencies</div>
+              <Row label="Offensive plays" v={t.offensivePlays}/>
+              <div className="mt-3"><Row label="Defensive plays" v={t.defensivePlays}/></div>
+            </div>
+          </div>
+        )}
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-stone-50 border-b border-stone-200 flex items-center justify-between">
+            <div className="font-display text-[14px] font-semibold text-stone-900">Roster (TEAM-02 / TEAM-03)</div>
+            <button onClick={() => openPlayer(null)} className="text-[12px] font-semibold text-teal-700 hover:text-teal-900">+ Add player</button>
+          </div>
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-100 bg-stone-50/60">
+              <th className="text-left py-2 px-4 font-semibold">#</th>
+              <th className="text-left font-semibold">Name</th>
+              <th className="text-left font-semibold">Position</th>
+              <th className="text-right font-semibold px-4">Actions</th>
+            </tr></thead>
+            <tbody>
+              {roster.items.sort((a,b) => a.number - b.number).map(p => (
+                <tr key={p.id} className="border-t border-stone-100">
+                  <td className="py-2 px-4 font-mono text-stone-700">{p.number}</td>
+                  <td className="font-medium text-stone-900">{p.name}</td>
+                  <td className="text-stone-700">{p.position}</td>
+                  <td className="text-right px-4 space-x-2">
+                    <button onClick={() => openPlayer(p)} className="text-[12px] text-teal-700 hover:underline">Edit</button>
+                    <button onClick={() => setConfirmRm(p)} className="text-[12px] text-red-600 hover:underline">Remove</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit team profile" subtitle="Edit the team profile" size="lg"
+        footer={<>
+          <button onClick={() => setEditing(null)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={saveTeam} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-teal-600 hover:bg-teal-700 btn-press">Save</button>
+        </>}>
+        {editing && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <TextField label="Team name" value={editing.name} onChange={v => setEditing({...editing, name:v})} required/>
+            <TextField label="Coach" value={editing.coach} onChange={v => setEditing({...editing, coach:v})}/>
+            <TextField label="Season" value={editing.season} onChange={v => setEditing({...editing, season:v})}/>
+            <TextField label="Colour (hex)" value={editing.colour} onChange={v => setEditing({...editing, colour:v})}/>
+            <div className="col-span-2"><TextArea label="Offensive plays" rows={2} value={editing.offensivePlays} onChange={v => setEditing({...editing, offensivePlays:v})}/></div>
+            <div className="col-span-2"><TextArea label="Defensive plays" rows={2} value={editing.defensivePlays} onChange={v => setEditing({...editing, defensivePlays:v})}/></div>
+          </div>
+        )}
+      </Modal>
+      <Modal open={!!draftPlayer} onClose={() => setDraftPlayer(null)} title={draftPlayer?.id ? 'Edit player' : 'Add player to roster'} subtitle="Add or edit a player"
+        footer={<>
+          <button onClick={() => setDraftPlayer(null)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={savePlayer} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-teal-600 hover:bg-teal-700 btn-press">Save</button>
+        </>}>
+        {draftPlayer && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <TextField label="Display name" value={draftPlayer.name} onChange={v => setDraftPlayer({...draftPlayer, name:v})} required/>
+            <NumberField label="Jersey #" value={draftPlayer.number} onChange={v => setDraftPlayer({...draftPlayer, number:v})}/>
+            <SelectField label="Position" value={draftPlayer.position} onChange={v => setDraftPlayer({...draftPlayer, position:v})} options={['PG','SG','SF','PF','C'].map(p => ({value:p,label:p}))}/>
+          </div>
+        )}
+      </Modal>
+      <ConfirmDialog open={!!confirmRm} onCancel={() => setConfirmRm(null)}
+        onConfirm={async () => { await roster.remove(confirmRm.id); setConfirmRm(null); }}
+        title="Remove from roster?" message={`Remove ${confirmRm?.name}?`}/>
+    </div>
+  );
+}
+
+function MessagesPage(){
+  const messages = useCollection('messages', []);
+  const roster = useCollection('roster', SEED_ROSTER);
+  const [tab, setTab] = useState('inbox');
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [activeId, setActiveId] = useState(null);
+  const COACH_ID = 'coach-1';
+
+  const inbox = useMemo(() => messages.items.filter(m => m.from?.userId !== COACH_ID && (m.to?.scope === 'role' && m.to?.role === 'coach')).sort((a,b) => (b.sentAt||0) - (a.sentAt||0)), [messages.items]);
+  const sent = useMemo(() => messages.items.filter(m => m.from?.userId === COACH_ID).sort((a,b) => (b.sentAt||0) - (a.sentAt||0)), [messages.items]);
+  const list = tab === 'inbox' ? inbox : sent;
+  const active = list.find(m => m.id === activeId) || list[0];
+
+  useEffect(() => {
+    if (active && tab === 'inbox' && !(active.readBy && active.readBy[COACH_ID])) {
+      messages.save({ ...active, readBy: { ...(active.readBy||{}), [COACH_ID]: Date.now() } });
+    }
+  }, [active?.id]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Messages" subtitle="Your messages."
+        actions={<button onClick={() => setComposeOpen(true)} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press">+ Compose</button>}/>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-80 border-r border-stone-200 flex flex-col bg-white">
+          <div className="flex border-b border-stone-200">
+            {[['inbox','Inbox'],['sent','Sent']].map(([id,l]) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex-1 py-2.5 text-[12.5px] font-semibold ${tab === id ? 'text-teal-700 border-b-2 border-teal-600' : 'text-stone-500 border-b-2 border-transparent hover:text-stone-800'}`}>{l}</button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {list.map(m => {
+              const unread = tab === 'inbox' && !(m.readBy && m.readBy[COACH_ID]);
+              return (
+                <button key={m.id} onClick={() => setActiveId(m.id)}
+                  className={`w-full text-left px-4 py-2.5 border-b border-stone-100 hover:bg-stone-50 ${active?.id === m.id ? 'bg-teal-50/60' : ''}`}>
+                  <div className="flex items-start gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${unread ? 'bg-teal-500' : 'bg-transparent'}`}/>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className={`text-[12.5px] truncate ${unread ? 'font-semibold text-stone-900' : 'font-medium text-stone-700'}`}>
+                          {tab === 'inbox' ? m.from?.name : (m.to?.scope === 'team' ? 'Team announcement' : (roster.items.find(r => r.id === m.to?.playerId)?.name) || (m.to?.role ? `Direct → ${m.to.role}` : 'Direct'))}
+                        </span>
+                        <span className="text-[10.5px] text-stone-400 shrink-0">{fmtRel(m.sentAt)}</span>
+                      </div>
+                      <div className={`text-[12px] truncate ${unread ? 'text-stone-800 font-medium' : 'text-stone-600'}`}>{m.subject}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {list.length === 0 && <div className="text-center text-stone-500 py-8 text-[12.5px]">No messages.</div>}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto bg-stone-50/50 p-7">
+          {active ? (
+            <div className="max-w-2xl mx-auto bg-white border border-stone-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-700">{active.kind === 'announcement' ? 'Team announcement' : 'Direct'}</span>
+                <span className="text-[11.5px] text-stone-500">{new Date(active.sentAt).toLocaleString()}</span>
+              </div>
+              <h2 className="font-display text-xl font-bold text-stone-900 mt-2">{active.subject}</h2>
+              <div className="mt-1 text-[12.5px] text-stone-600">From <span className="font-semibold">{active.from?.name}</span> ({active.from?.role})</div>
+              <p className="text-[14px] text-stone-800 mt-4 whitespace-pre-wrap leading-relaxed">{active.body}</p>
+            </div>
+          ) : <div className="text-center text-stone-500 py-12 text-[13px]">Select a message.</div>}
+        </div>
+      </div>
+      <ComposeModal open={composeOpen} onClose={() => setComposeOpen(false)} roster={roster.items}
+        onSend={async msg => { await messages.save(msg); setComposeOpen(false); setTab('sent'); setActiveId(msg.id); }}/>
+    </div>
+  );
+}
+function ComposeModal({ open, onClose, roster, onSend }){
+  const COACH_ID = 'coach-1';
+  const COACH_NAME = 'Coach R. Patterson';
+  const [audience, setAudience] = useState('team');
+  const [playerId, setPlayerId] = useState('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  useEffect(() => { if (open) { setAudience('team'); setPlayerId(''); setSubject(''); setBody(''); } }, [open]);
+  const can = subject.trim() && body.trim() && (audience !== 'player' || playerId);
+  const send = () => {
+    let to, kind;
+    if (audience === 'team') { to = { scope:'team', teamId:'team:default' }; kind = 'announcement'; }
+    else if (audience === 'trainer'){ to = { scope:'role', role:'trainer' }; kind = 'direct'; }
+    else { to = { scope:'player', playerId }; kind = 'direct'; }
+    onSend({ id: newId('msg'), from: { role:'coach', name: COACH_NAME, userId: COACH_ID }, to, kind, subject, body, sentAt: Date.now(), readBy: {}, threadId: newId('th') });
+  };
+  return (
+    <Modal open={open} onClose={onClose} title="New message" subtitle="Send a message" size="lg"
+      footer={<>
+        <button onClick={onClose} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button disabled={!can} onClick={send} className="px-3.5 py-2 text-[13px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 disabled:bg-stone-300 btn-press">Send</button>
+      </>}>
+      <SelectField label="Audience" value={audience} onChange={setAudience}
+        options={[{value:'team',label:'Team-wide announcement'},{value:'player',label:'Direct to a player'},{value:'trainer',label:'Direct to trainer'}]}/>
+      {audience === 'player' && (
+        <SelectField label="Player" value={playerId} onChange={setPlayerId}
+          options={[{ value:'', label:'— select player —' }, ...roster.map(r => ({ value:r.id, label:`#${r.number} ${r.name}` }))]}/>
+      )}
+      <TextField label="Subject" value={subject} onChange={setSubject} required/>
+      <TextArea label="Message" value={body} onChange={setBody} rows={6}/>
+    </Modal>
+  );
+}
+
+function Sidebar({ active, onSelect, onSignOut }){
+  const items = [
+    { id:'verify', name:'Verify roster', desc:'Verify player profiles' },
+    { id:'team',   name:'Team profile',  desc:'Roster and identity' },
+    { id:'games',  name:'Games',         desc:'Schedule and results' },
+    { id:'stats',  name:'Stat entry',    desc:'Per-game stats' },
+    { id:'msgs',   name:'Messages',      desc:'Inbox and announcements' },
+  ];
+  return (
+    <aside className="w-72 bg-stone-50 border-r border-stone-200 flex flex-col h-full shrink-0">
+      <div className="px-5 pt-5 pb-4 border-b border-stone-200 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center shadow-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" className="w-5 h-5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/></svg>
+        </div>
+        <div>
+          <div className="font-display font-bold text-stone-900 leading-tight text-[15px]">Centralize</div>
+          <div className="text-[10.5px] uppercase tracking-wider text-stone-500 font-semibold">Personnel Mgmt</div>
+        </div>
+      </div>
+      <div className="px-5 pt-2 pb-2">
+        <a href="coach-hub.html" className="block w-full text-center px-3 py-1.5 text-[12px] font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded">← Back to Hub</a>
+      </div>
+      <nav className="flex-1 overflow-y-auto py-3">
+        {items.map(it => (
+          <button key={it.id} onClick={() => onSelect(it.id)}
+            className={`w-full text-left px-5 py-2.5 ${active === it.id ? 'bg-teal-50/80 border-r-2 border-teal-600' : 'border-r-2 border-transparent hover:bg-stone-100'}`}>
+            <div className={`text-[13.5px] font-semibold ${active === it.id ? 'text-teal-700' : 'text-stone-800'}`}>{it.name}</div>
+            <div className="text-[10.5px] text-stone-500 uppercase tracking-wider mt-0.5">{it.desc}</div>
+          </button>
+        ))}
+      </nav>
+      <div className="px-5 py-4 border-t border-stone-200">
+        <div className="text-[11px] text-stone-500 leading-relaxed mb-3">Writes to shared <span className="font-mono">window.storage</span> consumed by the Players & Trainer modules.</div>
+        {onSignOut && <button onClick={onSignOut} className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-[12px] font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded">↩ Sign out</button>}
+      </div>
+    </aside>
+  );
+}
+
+function RoleGateScreen({ role }) {
+  return (
+    <div className="h-full canvas-bg flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-700 mx-auto flex items-center justify-center mb-3">✓</div>
+        <h1 className="font-display text-lg font-bold text-stone-900">Coach bridge — access restricted</h1>
+        <p className="text-[13px] text-stone-600 mt-2 leading-relaxed">
+          {role
+            ? <>You're signed in as <span className="font-semibold capitalize">{role}</span>. This area is for coaches.</>
+            : <>You aren't signed in yet.</>}
+        </p>
+        <a href="login.html" className="inline-block mt-5 px-4 py-2 text-[13px] font-semibold rounded-md bg-teal-600 text-white hover:bg-teal-700 btn-press">Go to login</a>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [role, , roleLoaded] = useStored('currentUser:role', null);
+  const [route, setRoute] = useState('verify');
+  if (!roleLoaded) return <div className="h-full flex items-center justify-center text-stone-500 text-[13px]">Loading…</div>;
+  if (role !== 'coach') return <RoleGateScreen role={role}/>;
+
+  const signOut = async () => {
+    if (window.cs_auth) await window.cs_auth.logout();
+    else {
+      await Storage.delete('currentUser:role');
+      await Storage.delete('currentUser:name');
+      await Storage.delete('currentUser:playerId');
+    }
+    window.location.href = 'login.html';
+  };
+
+  const Comp = { verify: VerifyPage, team: TeamProfilePage, games: GamesPage, stats: StatsPage, msgs: MessagesPage }[route] || VerifyPage;
+  return (
+    <div className="h-full flex">
+      <Sidebar active={route} onSelect={setRoute} onSignOut={signOut}/>
+      <main className="flex-1 h-full overflow-hidden flex flex-col canvas-bg">
+        <Comp/>
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

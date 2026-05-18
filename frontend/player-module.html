@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centralize — Players Module | Sports Performance Management</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root {
+    --bg-base: #f8f6f3;
+    --bg-surface: #ffffff;
+    --accent: #2563eb;          /* player blue (coach is teal #0d9488) */
+    --accent-hover: #1d4ed8;
+    --accent-soft: #dbeafe;
+    --court-wood-light: #f0d2a4;
+    --court-wood-mid: #d9b483;
+    --court-wood-dark: #b88f5e;
+    --court-line: rgba(255, 255, 255, 0.92);
+    --offense: #dc2626;
+    --defense: #1e40af;
+    --verified: #059669;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body, #root { height: 100%; margin: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg-base); color: #0c0a09; overflow: hidden; }
+  .font-display { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-feature-settings: 'ss01' on; letter-spacing: -0.01em; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .canvas-bg {
+    background-image:
+      radial-gradient(circle at 25% 15%, rgba(37, 99, 235, 0.045) 0%, transparent 35%),
+      radial-gradient(circle at 75% 85%, rgba(220, 38, 38, 0.035) 0%, transparent 40%),
+      linear-gradient(180deg, #f8f6f3 0%, #f3efe9 100%);
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(120, 113, 108, 0.5); }
+  .btn-press:active { transform: translateY(1px) scale(0.98); }
+  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  @keyframes badge-pop { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .badge-pop { animation: badge-pop 0.25s ease-out; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="runtime.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo, useCallback, Fragment, createContext, useContext } = React;
+
+/* =========================================================================
+   ICONS — minimal inline SVG set used across the app.
+   ========================================================================= */
+const Ic = (path, viewBox = '0 0 24 24') => ({ className = 'w-5 h-5', ...rest }) => (
+  <svg viewBox={viewBox} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
+    {path}
+  </svg>
+);
+const I = {
+  Home:     Ic(<><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></>),
+  User:     Ic(<><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></>),
+  Users:    Ic(<><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M22 19c0-2.5-2-4.5-5-4.5"/></>),
+  Stats:    Ic(<><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/></>),
+  Calendar: Ic(<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></>),
+  Trophy:   Ic(<><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M5 5h2v3a3 3 0 0 1-3-3V5h1zM19 5h-2v3a3 3 0 0 0 3-3V5h-1z"/></>),
+  Plays:    Ic(<><path d="M4 4l16 8-16 8z"/></>),
+  Video:    Ic(<><rect x="3" y="6" width="13" height="12" rx="1.5"/><path d="m16 10 5-3v10l-5-3z"/></>),
+  Rotate:   Ic(<><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></>),
+  Dumb:     Ic(<><path d="M3 12h2M19 12h2M7 7v10M11 5v14M13 5v14M17 7v10"/></>),
+  Apple:    Ic(<><path d="M12 7c-1-2-3-3-5-2-2 1-3 4-2 7s4 8 7 8 6-5 7-8-0-6-2-7c-2-1-4 0-5 2z"/><path d="M12 7c0-2 1-4 3-4"/></>),
+  Mail:     Ic(<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 7 9-7"/></>),
+  Send:     Ic(<><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></>),
+  Search:   Ic(<><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></>),
+  Plus:     Ic(<><path d="M12 5v14M5 12h14"/></>),
+  Pencil:   Ic(<><path d="M4 20h4l11-11-4-4L4 16z"/><path d="m13 6 4 4"/></>),
+  Trash:    Ic(<><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></>),
+  Close:    Ic(<><path d="M6 6l12 12M18 6 6 18"/></>),
+  Check:    Ic(<><path d="m4 12 5 5L20 6"/></>),
+  Shield:   Ic(<><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="m8.5 12 2.5 2.5L16 9.5"/></>),
+  Bell:     Ic(<><path d="M6 8a6 6 0 0 1 12 0v5l2 3H4l2-3V8z"/><path d="M10 19a2 2 0 0 0 4 0"/></>),
+  Logout:   Ic(<><path d="M9 5H5v14h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></>),
+  ChevronR: Ic(<><path d="m9 6 6 6-6 6"/></>),
+  ChevronL: Ic(<><path d="m15 6-6 6 6 6"/></>),
+  Eye:      Ic(<><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></>),
+  Filter:   Ic(<><path d="M3 5h18l-7 9v6l-4-2v-4L3 5z"/></>),
+  Camera:   Ic(<><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></>),
+  Star:     Ic(<><path d="m12 3 2.6 6 6.4.5-4.9 4.2 1.5 6.3L12 17l-5.6 3 1.5-6.3L3 9.5 9.4 9z"/></>),
+  Pin:      Ic(<><path d="M12 22v-7"/><path d="M8 4h8l-1 7H9z"/><path d="M7 11h10"/></>),
+  Court:    Ic(<><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M12 5v14M3 12h18"/><circle cx="12" cy="12" r="2"/></>),
+};
+
+/* =========================================================================
+   CONSTANTS
+   ========================================================================= */
+// NBA half-court coordinate space (matches coach module exactly, so plays
+// designed by the coach render identically here).
+const COURT = {
+  W: 500, H: 470,
+  HOOP: { x: 250, y: 52.5, r: 7.5 },
+  BACKBOARD: { x1: 220, y: 40, x2: 280 },
+  KEY: { x: 170, y: 0, w: 160, h: 190 },
+  FT: { cx: 250, cy: 190, r: 60 },
+  RESTRICTED: { cx: 250, cy: 52.5, r: 40 },
+  THREEPT: { cornerX1: 30, cornerX2: 470, cornerY: 140, arcR: 237.5 },
+};
+
+const COURT_TEMPLATES = [
+  { id:'half',  name:'Half Court' },
+  { id:'fullV', name:'Full Court (vertical)' },
+  { id:'fullH', name:'Full Court (horizontal)' },
+];
+
+// Shared roster — same shape as coach module's SEED_ROSTER. The coach module
+// writes to the `roster:*` keys; we read them. We seed defaults only if the
+// coach module hasn't seeded yet.
+const SEED_ROSTER = [
+  { id:'pl-1',  number:4,  name:'M. Anderson', position:'PG' },
+  { id:'pl-2',  number:7,  name:'D. Wilson',   position:'SG' },
+  { id:'pl-3',  number:23, name:'J. Carter',   position:'SF' },
+  { id:'pl-4',  number:32, name:'K. Brown',    position:'PF' },
+  { id:'pl-5',  number:55, name:'L. Mitchell', position:'C'  },
+  { id:'pl-6',  number:1,  name:'A. Thompson', position:'PG' },
+  { id:'pl-7',  number:11, name:'R. Davis',    position:'SG' },
+  { id:'pl-8',  number:21, name:'C. Martinez', position:'SF' },
+  { id:'pl-9',  number:34, name:'B. White',    position:'PF' },
+  { id:'pl-10', number:42, name:'T. Hall',     position:'C'  },
+];
+
+const SEED_GAMES = [
+  { id:'gm-1', opponent:'Riverside Knights', date:'2026-05-09', season:'2025-26', homeAway:'home', teamScore:89, oppScore:88, status:'completed' },
+  { id:'gm-2', opponent:'Eastside Eagles',   date:'2026-05-04', season:'2025-26', homeAway:'away', teamScore:76, oppScore:81, status:'completed' },
+  { id:'gm-3', opponent:'Central Tigers',    date:'2026-05-18', season:'2025-26', homeAway:'home', teamScore:null, oppScore:null, status:'scheduled' },
+  { id:'gm-4', opponent:'Northgate Wolves',  date:'2026-04-26', season:'2025-26', homeAway:'home', teamScore:93, oppScore:78, status:'completed' },
+  { id:'gm-5', opponent:'Harbor Sharks',     date:'2026-04-19', season:'2025-26', homeAway:'away', teamScore:71, oppScore:69, status:'completed' },
+];
+
+const TEAM_PROFILE_DEFAULT = {
+  id: 'team:default',
+  name: 'Centralize Crusaders',
+  coach: 'Coach R. Patterson',
+  colour: '#2563eb',
+  season: '2025-26',
+  offensivePlays: 'Princeton, 5-Out, Spain PnR',
+  defensivePlays: 'Pack-Line, 2-3 Zone, Switch Everything',
+};
+
+// Player profile shape (PROF-01..04, ATTR linkage). `verified` controls the
+// shield badge — coach toggles it via the Verify Roster page in the coach
+// module to confirm submitted information.
+const SEED_PLAYER_PROFILES = [
+  { id:'pp-pl-1',  playerId:'pl-1',  fullName:'Marcus Anderson',   age:21, height:'6\'2"',  weight:185, contactPhone:'555-0104', contactEmail:'m.anderson@team.example', dateOfBirth:'2004-08-12', jerseyNumber:4,  position:'PG', verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 7, photoDataUrl:null, bio:'Floor general. 4-year starter at point.' },
+  { id:'pp-pl-2',  playerId:'pl-2',  fullName:'Devon Wilson',      age:22, height:'6\'4"',  weight:198, contactPhone:'555-0107', contactEmail:'d.wilson@team.example',  dateOfBirth:'2003-11-30', jerseyNumber:7,  position:'SG', verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 7, photoDataUrl:null, bio:'Sharpshooter. Three-time conference all-star.' },
+  { id:'pp-pl-3',  playerId:'pl-3',  fullName:'Jordan Carter',     age:20, height:'6\'6"',  weight:210, contactPhone:'555-0123', contactEmail:'j.carter@team.example',  dateOfBirth:'2005-03-04', jerseyNumber:23, position:'SF', verified:false, verifiedBy:null, verifiedAt:null, photoDataUrl:null, bio:'Two-way wing. Always asks for the matchup.' },
+  { id:'pp-pl-4',  playerId:'pl-4',  fullName:'Kevon Brown',       age:23, height:'6\'8"',  weight:235, contactPhone:'555-0132', contactEmail:'k.brown@team.example',   dateOfBirth:'2002-09-18', jerseyNumber:32, position:'PF', verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 14, photoDataUrl:null, bio:'Captain. Rebounds for everyone.' },
+  { id:'pp-pl-5',  playerId:'pl-5',  fullName:'Lewis Mitchell',    age:24, height:'6\'11"', weight:255, contactPhone:'555-0155', contactEmail:'l.mitchell@team.example',dateOfBirth:'2001-12-22', jerseyNumber:55, position:'C',  verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 14, photoDataUrl:null, bio:'Rim protector. Career high 7 blocks.' },
+  { id:'pp-pl-6',  playerId:'pl-6',  fullName:'Aiden Thompson',    age:19, height:'5\'11"', weight:172, contactPhone:'555-0101', contactEmail:'a.thompson@team.example',dateOfBirth:'2006-06-15', jerseyNumber:1,  position:'PG', verified:false, verifiedBy:null, verifiedAt:null, photoDataUrl:null, bio:'Freshman. Quick first step.' },
+  { id:'pp-pl-7',  playerId:'pl-7',  fullName:'Ryan Davis',        age:20, height:'6\'3"',  weight:189, contactPhone:'555-0111', contactEmail:'r.davis@team.example',   dateOfBirth:'2005-01-25', jerseyNumber:11, position:'SG', verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 21, photoDataUrl:null, bio:'Hustle stats off the charts.' },
+  { id:'pp-pl-8',  playerId:'pl-8',  fullName:'Carlos Martinez',   age:21, height:'6\'5"',  weight:205, contactPhone:'555-0121', contactEmail:'c.martinez@team.example',dateOfBirth:'2004-04-08', jerseyNumber:21, position:'SF', verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 21, photoDataUrl:null, bio:'Versatile defender. 1-4 switchable.' },
+  { id:'pp-pl-9',  playerId:'pl-9',  fullName:'Brandon White',     age:22, height:'6\'9"',  weight:228, contactPhone:'555-0134', contactEmail:'b.white@team.example',   dateOfBirth:'2003-07-14', jerseyNumber:34, position:'PF', verified:false, verifiedBy:null, verifiedAt:null, photoDataUrl:null, bio:'Pick-and-pop big. Stretch four.' },
+  { id:'pp-pl-10', playerId:'pl-10', fullName:'Tyrese Hall',       age:23, height:'6\'10"', weight:248, contactPhone:'555-0142', contactEmail:'t.hall@team.example',    dateOfBirth:'2002-10-02', jerseyNumber:42, position:'C',  verified:true,  verifiedBy:'Coach R. Patterson', verifiedAt: Date.now() - 86400000 * 30, photoDataUrl:null, bio:'Skilled five. Soft hands on the roll.' },
+];
+
+// Per-game stat lines, written by the coach module (STAT-01) and read by
+// players (STAT-05/06). Seed a representative sample for completed games.
+const SEED_GAME_STATS = (() => {
+  // Generate believable stat lines for completed games for every player
+  const completed = ['gm-1','gm-2','gm-4','gm-5'];
+  const out = [];
+  let n = 0;
+  for (const gid of completed) {
+    for (const p of SEED_ROSTER) {
+      n++;
+      const base = (p.id.endsWith('-1') || p.id.endsWith('-2') || p.id.endsWith('-3') || p.id.endsWith('-4') || p.id.endsWith('-5')) ? 1.0 : 0.55;
+      const seed = (n * 7919) % 97; const r = (k) => ((seed * (k+1)) % 11) / 10;
+      out.push({
+        id: `gs-${gid}-${p.id}`,
+        gameId: gid,
+        playerId: p.id,
+        min: Math.round((20 + r(0)*16) * base),
+        pts: Math.round((10 + r(1)*18) * base),
+        ast: Math.round((2 + r(2)*7) * (p.position==='PG'?1.4: p.position==='SG'?1.05:0.7)),
+        reb: Math.round((3 + r(3)*8) * (p.position==='C'?1.5: p.position==='PF'?1.3:0.7)),
+        stl: Math.round(r(4)*3),
+        blk: Math.round((p.position==='C'||p.position==='PF') ? r(5)*3 : r(5)*1),
+        fga: Math.round((8 + r(6)*10) * base),
+        fgm: Math.round((4 + r(7)*6) * base),
+        tpa: Math.round(r(8)*7 * (p.position==='C'?0.2:1)),
+        tpm: Math.round(r(9)*4 * (p.position==='C'?0.2:1)),
+        fta: Math.round(r(0)*5),
+        ftm: Math.round(r(1)*4),
+        tov: Math.round(r(2)*3),
+        pf:  Math.round(r(3)*4),
+        updatedAt: Date.now() - 86400000 * 5,
+      });
+    }
+  }
+  return out;
+})();
+
+// Per-game team stats (STAT-02), used for STAT-07 / GAME-06.
+const SEED_TEAM_STATS = [
+  { id:'ts-gm-1', gameId:'gm-1', fgPct:48.2, tpPct:37.5, ftPct:81.0, reb:42, ast:21, tov:11, stl:8, blk:5 },
+  { id:'ts-gm-2', gameId:'gm-2', fgPct:41.0, tpPct:29.2, ftPct:74.1, reb:38, ast:16, tov:15, stl:6, blk:3 },
+  { id:'ts-gm-4', gameId:'gm-4', fgPct:51.4, tpPct:42.1, ftPct:78.9, reb:46, ast:25, tov:9,  stl:11, blk:7 },
+  { id:'ts-gm-5', gameId:'gm-5', fgPct:44.7, tpPct:31.0, ftPct:82.5, reb:39, ast:18, tov:13, stl:7,  blk:4 },
+];
+
+// Physical attributes (ATTR-01..04). Written by trainer; read by player.
+const SEED_ATTRIBUTES = SEED_ROSTER.map((p, idx) => ({
+  id: `at-${p.id}`,
+  playerId: p.id,
+  recordedAt: Date.now() - 86400000 * (3 + idx),
+  recordedBy: 'Trainer S. Wells',
+  heightCm: 178 + idx * 2,
+  weightKg: 78 + idx,
+  bodyFatPct: 8 + (idx % 5),
+  wingspanCm: 185 + idx * 2,
+  verticalInches: 28 + (idx % 7),
+  fortyYdSec: 4.8 - (idx % 4) * 0.05,
+  history: [
+    { date: '2026-02-01', heightCm: 178 + idx * 2, weightKg: 76 + idx, bodyFatPct: 9 + (idx % 4), verticalInches: 27 + (idx % 6) },
+    { date: '2026-04-01', heightCm: 178 + idx * 2, weightKg: 77 + idx, bodyFatPct: 8 + (idx % 5), verticalInches: 27 + (idx % 7) },
+  ],
+}));
+
+// Workouts assigned to players by trainers (WRK-04 → WRK-08).
+const SEED_WORKOUTS = [
+  { id:'wo-pl-1', playerId:'pl-1', title:'Guard Conditioning A', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 3, focus:'Conditioning + ball handling',
+    blocks:[
+      { name:'Warm-up', exercises:[{ name:'Dynamic stretch', sets:1, reps:'5 min' },{ name:'Jog', sets:1, reps:'400m' }] },
+      { name:'Strength', exercises:[{ name:'Back squat', sets:4, reps:'6' },{ name:'Romanian DL', sets:3, reps:'8' },{ name:'Pull-up', sets:3, reps:'AMRAP' }] },
+      { name:'Court', exercises:[{ name:'Cone weave dribble', sets:6, reps:'30s' },{ name:'Pull-up J spot shooting', sets:5, reps:'10 makes' }] },
+    ]
+  },
+  { id:'wo-pl-2', playerId:'pl-2', title:'Wing Power + Catch&Shoot', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 4, focus:'Lower body power + spot up',
+    blocks:[
+      { name:'Power', exercises:[{ name:'Box jump', sets:4, reps:'5' },{ name:'Trap-bar DL', sets:4, reps:'5' }] },
+      { name:'Court', exercises:[{ name:'5 spot C&S', sets:5, reps:'25 attempts' },{ name:'Closeout drill', sets:3, reps:'10' }] },
+    ]
+  },
+  { id:'wo-pl-3', playerId:'pl-3', title:'Two-Way Wing', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 2, focus:'Lateral quickness + finishing',
+    blocks:[
+      { name:'Conditioning', exercises:[{ name:'17s sideline', sets:3, reps:'<65s' }] },
+      { name:'Skill', exercises:[{ name:'Mikan series', sets:3, reps:'20' },{ name:'Drive-finish at rim, both hands', sets:5, reps:'10' }] },
+    ]
+  },
+  { id:'wo-pl-4', playerId:'pl-4', title:'Captain Maintenance', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 1, focus:'Recovery + posting',
+    blocks:[
+      { name:'Mobility', exercises:[{ name:'Hip 90/90 + thoracic rotations', sets:1, reps:'8 min' }] },
+      { name:'Skill', exercises:[{ name:'Mid-post jab series', sets:4, reps:'10 each side' }] },
+    ]
+  },
+  { id:'wo-pl-5', playerId:'pl-5', title:'Big Block + Roll', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 5, focus:'Roll-to-rim speed',
+    blocks:[
+      { name:'Strength', exercises:[{ name:'Front squat', sets:4, reps:'6' },{ name:'Push press', sets:4, reps:'5' }] },
+      { name:'Court', exercises:[{ name:'Pick-and-roll catch + finish', sets:6, reps:'10' }] },
+    ]
+  },
+];
+
+// Dietary plans (WRK-06 → WRK-09).
+const SEED_DIET = [
+  { id:'dt-pl-1', playerId:'pl-1', title:'Guard Fuel — In Season', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 6, kcal: 3000, protein: 180, carbs: 380, fat: 90,
+    notes:'Carb-forward on practice days. Pre-game oatmeal + banana 3h prior.',
+    meals: [
+      { time:'07:00', name:'Breakfast', items:'Oats + berries + 3 eggs + toast' },
+      { time:'12:30', name:'Lunch',     items:'Chicken rice bowl + side salad' },
+      { time:'15:30', name:'Pre-prac',  items:'Banana + PB toast' },
+      { time:'19:00', name:'Dinner',    items:'Salmon + sweet potato + greens' },
+      { time:'21:30', name:'Recovery',  items:'Cottage cheese + honey' },
+    ],
+  },
+  { id:'dt-pl-5', playerId:'pl-5', title:'Big Man — Mass Maintain', assignedBy:'Trainer S. Wells', assignedAt: Date.now() - 86400000 * 8, kcal: 3800, protein: 220, carbs: 430, fat: 120,
+    notes:'High-protein. Hydration target 5L/day in season.',
+    meals: [
+      { time:'07:00', name:'Breakfast', items:'4 eggs + oats + protein shake' },
+      { time:'12:30', name:'Lunch',     items:'Steak + rice + roasted veg' },
+      { time:'16:00', name:'Snack',     items:'Greek yogurt + granola' },
+      { time:'19:30', name:'Dinner',    items:'Chicken + pasta + olive oil' },
+      { time:'22:00', name:'Recovery',  items:'Casein + almond butter' },
+    ],
+  },
+];
+
+// Training sessions (TRN-01) — written by coach, read by players (TRN-06).
+const SEED_TRAINING = [
+  { id:'tr-1', title:'Princeton Install', date:'2026-05-17', startTime:'10:00', endTime:'12:00', location:'Practice Gym A', objectives:'Backdoor cuts + chin entries; finish at the rim. Light contact.', createdBy:'Coach R. Patterson' },
+  { id:'tr-2', title:'Defensive Shell',   date:'2026-05-18', startTime:'10:00', endTime:'12:00', location:'Practice Gym A', objectives:'4-on-4 shell w/ ICE coverage. Communication focus.', createdBy:'Coach R. Patterson' },
+  { id:'tr-3', title:'Walk-Through (Tigers)', date:'2026-05-19', startTime:'14:00', endTime:'15:30', location:'Film Room B', objectives:'Tigers personnel + early offense. Scouting tendencies.', createdBy:'Coach R. Patterson' },
+  { id:'tr-4', title:'Shoot-Around', date:'2026-05-20', startTime:'10:30', endTime:'11:30', location:'Main Arena', objectives:'Spot shooting + free throws. Light legs.', createdBy:'Coach R. Patterson' },
+  { id:'tr-5', title:'Strength Block A', date:'2026-05-21', startTime:'08:00', endTime:'09:30', location:'Weight Room', objectives:'Lower body — squat / DL accessory. With Trainer S. Wells.', createdBy:'Trainer S. Wells' },
+];
+
+// Plays shared by the coach (PLAY-15). The player module reads from the
+// SAME `plays:*` keyspace the coach module writes to — these seeds match
+// the coach module's 5 canonical plays (play-pnr-right, play-horns,
+// play-5out, play-princeton, play-blob) and only seed if neither module
+// has written yet. When the coach module is opened first, its plays load
+// directly with no duplication.
+const SEED_PLAYS = [
+  { id:'play-pnr-right', name:'Pick-and-Roll — Right Wing', side:'offense', category:'Set Plays', tags:['PnR','Half Court'],
+    description:'Right-wing PnR — 5 sets the screen for 1; read defense for roll, pop, or kick-out.',
+    courtTemplate:'half', sharedAt: Date.now() - 86400000 * 2, sharedBy:'Coach R. Patterson', sharedWith:'all',
+    phases:[
+      { id:'ph-1', label:'Setup', positions:{ o1:{x:330,y:300}, o2:{x:80,y:230}, o3:{x:420,y:200}, o4:{x:165,y:95}, o5:{x:330,y:230} }, drawings:[] },
+      { id:'ph-2', label:'5 sets screen on 1’s defender', positions:{ o1:{x:330,y:300}, o2:{x:80,y:230}, o3:{x:420,y:200}, o4:{x:165,y:95}, o5:{x:320,y:280} },
+        drawings:[{ id:'d1', type:'screen', x1:320, y1:280, x2:330, y2:300 }] },
+      { id:'ph-3', label:'1 attacks, 5 rolls', positions:{ o1:{x:380,y:220}, o2:{x:80,y:230}, o3:{x:420,y:200}, o4:{x:165,y:95}, o5:{x:280,y:160} },
+        drawings:[{ id:'d2', type:'move', x1:330, y1:300, x2:380, y2:220 },{ id:'d3', type:'move', x1:320, y1:280, x2:280, y2:160 }] },
+      { id:'ph-4', label:'Pocket pass to roller', positions:{ o1:{x:380,y:220}, o2:{x:80,y:230}, o3:{x:420,y:200}, o4:{x:165,y:95}, o5:{x:250,y:90} },
+        drawings:[{ id:'d4', type:'pass', x1:380, y1:220, x2:250, y2:90 }] },
+    ],
+  },
+  { id:'play-horns', name:'Horns Flex', side:'offense', category:'Set Plays', tags:['Set Play','Half Court'],
+    description:'Horns alignment — flex cut from corner uses the high-post big as a screener.',
+    courtTemplate:'half', sharedAt: Date.now() - 86400000 * 4, sharedBy:'Coach R. Patterson', sharedWith:'all',
+    phases:[
+      { id:'ph-1', label:'Horns set', positions:{ o1:{x:250,y:380}, o2:{x:60,y:140}, o3:{x:440,y:140}, o4:{x:175,y:160}, o5:{x:325,y:160} }, drawings:[] },
+      { id:'ph-2', label:'2 flex-cuts off 5', positions:{ o1:{x:250,y:380}, o2:{x:250,y:80}, o3:{x:440,y:140}, o4:{x:175,y:160}, o5:{x:325,y:160} },
+        drawings:[{ id:'d1', type:'move', x1:60, y1:140, x2:250, y2:80 },{ id:'d2', type:'screen', x1:325, y1:160, x2:250, y2:80 }] },
+      { id:'ph-3', label:'Skip-and-pop', positions:{ o1:{x:200,y:340}, o2:{x:250,y:80}, o3:{x:440,y:140}, o4:{x:120,y:230}, o5:{x:325,y:160} },
+        drawings:[{ id:'d3', type:'pass', x1:200, y1:340, x2:250, y2:80 }] },
+    ],
+  },
+  { id:'play-5out', name:'5-Out Motion Open', side:'offense', category:'Continuity', tags:['Motion','Continuity'],
+    description:'Free-flowing 5-out motion. Read-and-react: pass-cut-replace, dribble-handoffs, on-ball screens.',
+    courtTemplate:'half', sharedAt: Date.now() - 86400000 * 6, sharedBy:'Coach R. Patterson', sharedWith:'all',
+    phases:[
+      { id:'ph-1', label:'5-Out alignment', positions:{ o1:{x:250,y:390}, o2:{x:60,y:290}, o3:{x:440,y:290}, o4:{x:100,y:110}, o5:{x:400,y:110} }, drawings:[] },
+      { id:'ph-2', label:'Pass + basket cut', positions:{ o1:{x:60,y:290}, o2:{x:250,y:120}, o3:{x:440,y:290}, o4:{x:100,y:110}, o5:{x:400,y:110} },
+        drawings:[{ id:'d1', type:'pass', x1:250, y1:390, x2:60, y2:290 },{ id:'d2', type:'move', x1:250, y1:390, x2:250, y2:120 }] },
+    ],
+  },
+  { id:'play-princeton', name:'Princeton High Post', side:'offense', category:'Continuity', tags:['Continuity'],
+    description:'Princeton continuity — entry into high-post hub for split action and backdoor cuts.',
+    courtTemplate:'half', sharedAt: Date.now() - 86400000 * 8, sharedBy:'Coach R. Patterson', sharedWith:'all',
+    phases:[
+      { id:'ph-1', label:'Setup', positions:{ o1:{x:250,y:360}, o2:{x:100,y:230}, o3:{x:400,y:230}, o4:{x:200,y:110}, o5:{x:300,y:110} }, drawings:[] },
+      { id:'ph-2', label:'Chin entry to high-post hub', positions:{ o1:{x:170,y:300}, o2:{x:100,y:230}, o3:{x:400,y:230}, o4:{x:250,y:160}, o5:{x:300,y:110} },
+        drawings:[{ id:'d1', type:'pass', x1:170, y1:300, x2:250, y2:160 },{ id:'d2', type:'move', x1:200, y1:110, x2:250, y2:160 }] },
+      { id:'ph-3', label:'Split + backdoor cut', positions:{ o1:{x:330,y:280}, o2:{x:100,y:230}, o3:{x:400,y:230}, o4:{x:200,y:180}, o5:{x:250,y:60} },
+        drawings:[{ id:'d3', type:'pass', x1:200, y1:180, x2:250, y2:60 },{ id:'d4', type:'screen', x1:200, y1:180, x2:330, y2:280 }] },
+    ],
+  },
+  { id:'play-blob', name:'BLOB Box-1', side:'offense', category:'Inbounds', tags:['Inbounds','Baseline'],
+    description:'Baseline out-of-bounds — box set with 1 as inbounder. Cross-screens free up the shooter.',
+    courtTemplate:'half', sharedAt: Date.now() - 86400000 * 10, sharedBy:'Coach R. Patterson', sharedWith:'all',
+    phases:[
+      { id:'ph-1', label:'Box set, 1 inbounds', positions:{ o1:{x:250,y:8}, o2:{x:175,y:160}, o3:{x:325,y:160}, o4:{x:175,y:60}, o5:{x:325,y:60} }, drawings:[] },
+      { id:'ph-2', label:'4 cross-screens for 2', positions:{ o1:{x:250,y:8}, o2:{x:325,y:160}, o3:{x:325,y:160}, o4:{x:240,y:140}, o5:{x:325,y:60} },
+        drawings:[{ id:'d1', type:'screen', x1:240, y1:140, x2:175, y2:160 },{ id:'d2', type:'move', x1:175, y1:160, x2:325, y2:160 }] },
+      { id:'ph-3', label:'Skip-pass to shooter', positions:{ o1:{x:250,y:8}, o2:{x:430,y:160}, o3:{x:325,y:160}, o4:{x:240,y:140}, o5:{x:325,y:60} },
+        drawings:[{ id:'d3', type:'pass', x1:250, y1:8, x2:430, y2:160 }] },
+    ],
+  },
+];
+
+// Videos uploaded by coach + tags (VID-01..04). Players see only those they
+// are tagged in (VID-08).
+const SEED_VIDEOS = [
+  { id:'vd-1', title:'Princeton Chin — Game 4', description:'Full play execution from gm-4. Note 5’s timing on the flash.', taggedPlayerIds:['pl-1','pl-3','pl-4','pl-5'],
+    has2DMap:true, keyframeCount:5, playId:'sp-1', uploadedAt: Date.now() - 86400000 * 3, uploadedBy:'Coach R. Patterson',
+    posterUrl:null, durationSec: 18.6,
+    keyframes:[
+      { time:0,   players:{ o1:{x:250,y:380}, o2:{x:80,y:230}, o3:{x:420,y:230}, o4:{x:165,y:95}, o5:{x:335,y:95} } },
+      { time:3.2, players:{ o1:{x:170,y:300}, o2:{x:80,y:230}, o3:{x:420,y:230}, o4:{x:250,y:160}, o5:{x:335,y:95} } },
+      { time:6.4, players:{ o1:{x:200,y:240}, o2:{x:80,y:230}, o3:{x:420,y:230}, o4:{x:230,y:140}, o5:{x:280,y:100} } },
+      { time:9.6, players:{ o1:{x:330,y:280}, o2:{x:80,y:230}, o3:{x:420,y:230}, o4:{x:200,y:180}, o5:{x:250,y:60} } },
+      { time:13,  players:{ o1:{x:360,y:250}, o2:{x:80,y:230}, o3:{x:420,y:230}, o4:{x:200,y:180}, o5:{x:250,y:55} } },
+    ],
+  },
+  { id:'vd-2', title:'Spain PnR — Knights, Q3', description:'Two reps in a row. 5 finishes the lob on the second.', taggedPlayerIds:['pl-1','pl-2','pl-4','pl-5'],
+    has2DMap:true, keyframeCount:4, playId:'sp-2', uploadedAt: Date.now() - 86400000 * 5, uploadedBy:'Coach R. Patterson',
+    posterUrl:null, durationSec: 22.1,
+    keyframes:[
+      { time:0,   players:{ o1:{x:250,y:380}, o2:{x:90,y:240}, o3:{x:410,y:240}, o4:{x:175,y:95}, o5:{x:325,y:95} } },
+      { time:5.5, players:{ o1:{x:230,y:300}, o2:{x:90,y:240}, o3:{x:410,y:240}, o4:{x:175,y:180}, o5:{x:280,y:290} } },
+      { time:11,  players:{ o1:{x:300,y:260}, o2:{x:90,y:240}, o3:{x:410,y:240}, o4:{x:160,y:220}, o5:{x:260,y:170} } },
+      { time:18,  players:{ o1:{x:340,y:240}, o2:{x:90,y:240}, o3:{x:410,y:240}, o4:{x:160,y:240}, o5:{x:250,y:80} } },
+    ],
+  },
+  { id:'vd-3', title:'Scouting — Tigers Pin-Down', description:'Tigers run zipper into pin-down for their 2. Tag chasers.', taggedPlayerIds:['pl-1','pl-2','pl-3','pl-7','pl-8'],
+    has2DMap:true, keyframeCount:3, playId:null, uploadedAt: Date.now() - 86400000 * 1, uploadedBy:'Coach R. Patterson',
+    posterUrl:null, durationSec: 14.0,
+    keyframes:[
+      { time:0,  players:{ d1:{x:250,y:300}, d2:{x:110,y:200}, d3:{x:390,y:200}, d4:{x:180,y:120}, d5:{x:320,y:120} } },
+      { time:5,  players:{ d1:{x:250,y:300}, d2:{x:160,y:230}, d3:{x:390,y:200}, d4:{x:180,y:120}, d5:{x:320,y:120} } },
+      { time:10, players:{ d1:{x:250,y:300}, d2:{x:90,y:200},  d3:{x:390,y:200}, d4:{x:180,y:120}, d5:{x:320,y:120} } },
+    ],
+  },
+];
+
+// Rotations per game (ROT-01..03). Players read assigned mins + sub plan.
+const SEED_ROTATIONS = [
+  { id:'rt-gm-3', gameId:'gm-3', totalMinutes:48,
+    starters:['pl-1','pl-2','pl-3','pl-4','pl-5'],
+    players: [
+      { playerId:'pl-1', mins:34, role:'Starter', subFor:null },
+      { playerId:'pl-2', mins:30, role:'Starter', subFor:null },
+      { playerId:'pl-3', mins:28, role:'Starter', subFor:null },
+      { playerId:'pl-4', mins:32, role:'Starter', subFor:null },
+      { playerId:'pl-5', mins:26, role:'Starter', subFor:null },
+      { playerId:'pl-6', mins:14, role:'Bench',   subFor:'pl-1' },
+      { playerId:'pl-7', mins:18, role:'Bench',   subFor:'pl-2' },
+      { playerId:'pl-8', mins:20, role:'Bench',   subFor:'pl-3' },
+      { playerId:'pl-9', mins:16, role:'Bench',   subFor:'pl-4' },
+      { playerId:'pl-10',mins:22, role:'Bench',   subFor:'pl-5' },
+    ],
+    notes:'PG rotation: Marcus → Aiden at 6:00 of each quarter. Watch foul trouble on K. Brown.',
+  },
+  { id:'rt-gm-1', gameId:'gm-1', totalMinutes:48,
+    starters:['pl-1','pl-2','pl-3','pl-4','pl-5'],
+    players: SEED_ROSTER.map((p, i) => ({ playerId: p.id, mins: i < 5 ? 32-i : 14+i%3, role: i < 5 ? 'Starter' : 'Bench', subFor: i < 5 ? null : SEED_ROSTER[i-5].id })),
+    notes:'Standard rotation.',
+  },
+];
+
+// Messages — shared inbox across roles via message:* keys.
+const SEED_MESSAGES = [
+  { id:'msg-1', from:{ role:'coach', name:'Coach R. Patterson', userId:'coach-1' }, to:{ scope:'team', teamId:'team:default' }, kind:'announcement',
+    subject:'Bus departs 7:30 Saturday', body:'Light dinner at the hotel after walk-through. Be on the bus by 7:25.', sentAt: Date.now() - 86400000 * 1, readBy:{}, threadId:'th-1' },
+  { id:'msg-2', from:{ role:'coach', name:'Coach R. Patterson', userId:'coach-1' }, to:{ scope:'player', playerId:'pl-1' }, kind:'direct',
+    subject:'Princeton starts', body:'Marcus — you’re leading the chin entry on Saturday. Run it back at me on film tomorrow.', sentAt: Date.now() - 86400000 * 2, readBy:{}, threadId:'th-2' },
+  { id:'msg-3', from:{ role:'trainer', name:'Trainer S. Wells', userId:'trainer-1' }, to:{ scope:'player', playerId:'pl-1' }, kind:'direct',
+    subject:'Recovery check-in', body:'How’s the ankle feeling after Sunday? Strength block A is locked in for Thursday either way.', sentAt: Date.now() - 86400000 * 3, readBy:{}, threadId:'th-3' },
+  { id:'msg-4', from:{ role:'coach', name:'Coach R. Patterson', userId:'coach-1' }, to:{ scope:'team', teamId:'team:default' }, kind:'announcement',
+    subject:'New scouting report posted', body:'Tigers pin-down breakdown is in the Videos tab — tag yourself if you cover the 2.', sentAt: Date.now() - 86400000 * 4, readBy:{}, threadId:'th-4' },
+  { id:'msg-5', from:{ role:'coach', name:'Coach R. Patterson', userId:'coach-1' }, to:{ scope:'team', teamId:'team:default' }, kind:'announcement',
+    subject:'Profile verification deadline', body:'Please make sure your profile is complete and up-to-date by Friday. I’ll verify each one in the system.', sentAt: Date.now() - 86400000 * 7, readBy:{}, threadId:'th-5' },
+];
+
+/* =========================================================================
+   ROUTER
+   ========================================================================= */
+const RouterCtx = createContext({ route: 'dashboard', params: {}, go: () => {} });
+const useRouter = () => useContext(RouterCtx);
+
+/* =========================================================================
+   STORAGE LAYER — identical wrapper as coach module so keys are
+   interoperable between the two HTML files when run in the same Cowork
+   workspace.
+   ========================================================================= */
+const Storage = {
+  async get(key) {
+    if (!window.storage) return null;
+    try { const r = await window.storage.get(key); return r?.value ? JSON.parse(r.value) : null; }
+    catch { return null; }
+  },
+  async set(key, value) {
+    if (!window.storage) return false;
+    try { await window.storage.set(key, JSON.stringify(value)); return true; } catch { return false; }
+  },
+  async delete(key) {
+    if (!window.storage) return false;
+    try { await window.storage.delete(key); return true; } catch { return false; }
+  },
+  async list(prefix) {
+    if (!window.storage) return [];
+    try { const r = await window.storage.list(prefix); return r?.keys || []; } catch { return []; }
+  },
+};
+
+/** Browser fallback so the file is openable offline without window.storage. */
+if (typeof window !== 'undefined' && !window.storage) {
+  const mem = {};
+  window.storage = {
+    async get(k){ if(!(k in mem)) throw new Error('not found'); return { value: mem[k] }; },
+    async set(k,v){ mem[k] = v; return true; },
+    async delete(k){ delete mem[k]; return true; },
+    async list(p){ return { keys: Object.keys(mem).filter(k => k.startsWith(p)) }; },
+  };
+}
+
+/* =========================================================================
+   HOOKS — useCollection, useStored. Same semantics as coach module.
+   ========================================================================= */
+function useCollection(prefix, defaults = []) {
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const keys = await Storage.list(`${prefix}:`);
+      const seeded = await Storage.get(`${prefix}:__seeded`);
+      const itemKeys = keys.filter((k) => !k.endsWith(':__seeded'));
+      const all = await Promise.all(itemKeys.map((k) => Storage.get(k)));
+      const valid = all.filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      if (!seeded && valid.length === 0 && defaults.length > 0) {
+        await Storage.set(`${prefix}:__seeded`, true);
+        for (const d of defaults) await Storage.set(`${prefix}:${d.id}`, { ...d, updatedAt: d.updatedAt || Date.now() });
+        if (!cancelled) setItems([...defaults]);
+      } else if (!cancelled) {
+        setItems(valid);
+      }
+      if (!cancelled) setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [prefix]);
+
+  const save = useCallback(async (item) => {
+    const id = item.id || `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const next = { ...item, id, updatedAt: Date.now() };
+    await Storage.set(`${prefix}:${id}`, next);
+    setItems((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      if (idx === -1) return [next, ...prev];
+      const arr = [...prev]; arr[idx] = next; return arr;
+    });
+    return next;
+  }, [prefix]);
+
+  const remove = useCallback(async (id) => {
+    await Storage.delete(`${prefix}:${id}`);
+    setItems((prev) => prev.filter((p) => p.id !== id));
+  }, [prefix]);
+
+  return { items, save, remove, loaded, setItems };
+}
+
+function useStored(key, initial) {
+  const [value, setValue] = useState(initial);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const v = await Storage.get(key);
+      if (v !== null && !cancelled) setValue(v);
+      if (!cancelled) setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [key]);
+  const setAndStore = useCallback((v) => {
+    setValue((prev) => {
+      const next = typeof v === 'function' ? v(prev) : v;
+      Storage.set(key, next);
+      return next;
+    });
+  }, [key]);
+  return [value, setAndStore, loaded];
+}
+
+/* =========================================================================
+   UI PRIMITIVES — Modal, Confirm, fields, headers, badges
+   ========================================================================= */
+function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
+  return (
+    <div className="fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full ${sizes[size] || sizes.md} max-h-[92vh] flex flex-col`} onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-stone-900">{title}</h2>
+            {subtitle && <p className="text-[12.5px] text-stone-500 mt-0.5">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 -mr-1.5 p-1.5 rounded hover:bg-stone-100"><I.Close className="w-5 h-5"/></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        {footer && <div className="px-5 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-end gap-2 rounded-b-2xl">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ open, onConfirm, onCancel, title, message, confirmLabel='Delete', danger=true }) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title} size="sm"
+      footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onConfirm} className={`px-3.5 py-2 text-[13px] font-semibold text-white rounded-md btn-press ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>{confirmLabel}</button>
+      </>}>
+      <p className="text-[14px] text-stone-700 leading-relaxed">{message}</p>
+    </Modal>
+  );
+}
+
+function TextField({ label, value, onChange, placeholder, type='text', autoFocus=false, required=false }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}{required && <span className="text-red-600 ml-0.5">*</span>}</span>
+      <input type={type} value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoFocus={autoFocus}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+    </label>
+  );
+}
+function NumberField({ label, value, onChange, min, max, placeholder }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <input type="number" value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+        min={min} max={max} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+    </label>
+  );
+}
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <select value={value || ''} onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+        {options.map((o) => <option key={o.value || o} value={o.value || o}>{o.label || o}</option>)}
+      </select>
+    </label>
+  );
+}
+function TextArea({ label, value, onChange, placeholder, rows=4 }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <textarea value={value || ''} onChange={(e) => onChange(e.target.value)} rows={rows} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"/>
+    </label>
+  );
+}
+
+function PageHeader({ title, subtitle, actions, children }) {
+  return (
+    <div className="px-7 py-5 border-b border-stone-200 bg-white flex items-start justify-between gap-4">
+      <div>
+        <h1 className="font-display text-[22px] font-semibold text-stone-900">{title}</h1>
+        {subtitle && <p className="text-[13px] text-stone-500 mt-1">{subtitle}</p>}
+        {children}
+      </div>
+      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+    </div>
+  );
+}
+
+function VerifiedBadge({ verified, verifiedBy, verifiedAt, compact=false }) {
+  if (verified) {
+    return (
+      <span className={`inline-flex items-center gap-1 ${compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'} rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 badge-pop`}
+        title={verifiedBy ? `Verified by ${verifiedBy}${verifiedAt ? ' • ' + fmtRelative(verifiedAt) : ''}` : 'Verified by coach'}>
+        <I.Shield className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'}/>{compact ? '' : 'Verified'}
+      </span>
+    );
+  }
+  return (
+    <span className={`inline-flex items-center gap-1 ${compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-0.5 text-[11px]'} rounded-full bg-amber-50 text-amber-700 font-medium border border-amber-200`}
+      title="Awaiting coach verification">
+      <I.Bell className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'}/>{compact ? '' : 'Unverified'}
+    </span>
+  );
+}
+
+const newId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+function fmtRelative(ts) {
+  if (!ts) return '—';
+  const diff = Date.now() - ts;
+  const s = Math.round(diff/1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s/60); if (m < 60) return `${m}m ago`;
+  const h = Math.round(m/60); if (h < 24) return `${h}h ago`;
+  const d = Math.round(h/24); if (d < 30) return `${d}d ago`;
+  return new Date(ts).toLocaleDateString();
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+}
+
+/* =========================================================================
+   COURT VIEWER — read-only SVG court for PLAY-15 / VID-09.
+   Same coordinate system as coach module.
+   ========================================================================= */
+function CourtView({ positions = {}, drawings = [], courtTemplate = 'half', height = 360 }) {
+  // Draw the standard NBA half-court with shading.
+  const W = COURT.W, H = COURT.H;
+  // Compose arrow markers
+  return (
+    <svg viewBox={`-10 -10 ${W+20} ${H+20}`} preserveAspectRatio="xMidYMid meet" style={{ width: '100%', height }} className="rounded-lg shadow-sm">
+      <defs>
+        <linearGradient id="wood" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%"  stopColor="var(--court-wood-light)"/>
+          <stop offset="55%" stopColor="var(--court-wood-mid)"/>
+          <stop offset="100%" stopColor="var(--court-wood-dark)"/>
+        </linearGradient>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="#0f172a"/>
+        </marker>
+      </defs>
+      <rect x={-10} y={-10} width={W+20} height={H+20} fill="url(#wood)"/>
+      {/* Boundary */}
+      <rect x={0} y={0} width={W} height={H} fill="none" stroke="var(--court-line)" strokeWidth="3"/>
+      {/* Key */}
+      <rect x={COURT.KEY.x} y={COURT.KEY.y} width={COURT.KEY.w} height={COURT.KEY.h} fill="rgba(217,119,6,0.15)" stroke="var(--court-line)" strokeWidth="2.5"/>
+      {/* FT circle */}
+      <circle cx={COURT.FT.cx} cy={COURT.FT.cy} r={COURT.FT.r} fill="none" stroke="var(--court-line)" strokeWidth="2.5"/>
+      {/* Restricted */}
+      <path d={`M ${COURT.RESTRICTED.cx - COURT.RESTRICTED.r} ${COURT.RESTRICTED.cy} A ${COURT.RESTRICTED.r} ${COURT.RESTRICTED.r} 0 0 0 ${COURT.RESTRICTED.cx + COURT.RESTRICTED.r} ${COURT.RESTRICTED.cy}`} fill="none" stroke="var(--court-line)" strokeWidth="2"/>
+      {/* 3-pt */}
+      <path d={`M ${COURT.THREEPT.cornerX1} ${COURT.THREEPT.cornerY} L ${COURT.THREEPT.cornerX1} 0 M ${COURT.THREEPT.cornerX2} ${COURT.THREEPT.cornerY} L ${COURT.THREEPT.cornerX2} 0 M ${COURT.THREEPT.cornerX1} ${COURT.THREEPT.cornerY} A ${COURT.THREEPT.arcR} ${COURT.THREEPT.arcR} 0 0 0 ${COURT.THREEPT.cornerX2} ${COURT.THREEPT.cornerY}`} fill="none" stroke="var(--court-line)" strokeWidth="2.5"/>
+      {/* Half-court line + circle */}
+      <line x1={0} y1={H} x2={W} y2={H} stroke="var(--court-line)" strokeWidth="3"/>
+      <circle cx={W/2} cy={H} r={36} fill="none" stroke="var(--court-line)" strokeWidth="2"/>
+      {/* Backboard + rim */}
+      <line x1={COURT.BACKBOARD.x1} y1={COURT.BACKBOARD.y} x2={COURT.BACKBOARD.x2} y2={COURT.BACKBOARD.y} stroke="#1e293b" strokeWidth="3"/>
+      <circle cx={COURT.HOOP.x} cy={COURT.HOOP.y} r={COURT.HOOP.r} fill="none" stroke="#dc2626" strokeWidth="2"/>
+
+      {/* Drawings */}
+      {drawings.map((d) => {
+        const stroke = d.type === 'pass' ? '#0f172a' : d.type === 'screen' ? '#dc2626' : d.type === 'dribble' ? '#0d9488' : '#1e40af';
+        const dash = d.type === 'pass' ? '6 4' : d.type === 'dribble' ? '2 3' : '0';
+        return (
+          <g key={d.id || `dr-${d.x1}-${d.y1}-${d.x2}-${d.y2}`}>
+            <line x1={d.x1} y1={d.y1} x2={d.x2} y2={d.y2} stroke={stroke} strokeWidth="2.4" strokeDasharray={dash} markerEnd="url(#arrow)"/>
+          </g>
+        );
+      })}
+      {/* Players */}
+      {Object.entries(positions).map(([id, p]) => {
+        if (!p) return null;
+        const isDef = id.startsWith('d');
+        const fill = isDef ? 'var(--defense)' : 'var(--offense)';
+        const label = id.replace(/^[od]/, '');
+        return (
+          <g key={id}>
+            <circle cx={p.x} cy={p.y} r={14} fill={fill} stroke="white" strokeWidth="2.4"/>
+            <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="13" fontWeight="700" fill="white" style={{ pointerEvents: 'none' }}>{label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/* =========================================================================
+   AUTH — RBAC role gate (AUTH-01..04). Identity is established centrally in
+   login.html and persisted to currentUser:role / currentUser:playerId.
+   This module accepts only role=player; anything else bounces back to
+   login.html. Sign-out clears those keys and redirects.
+   ========================================================================= */
+function RoleGateScreen({ role }) {
+  return (
+    <div className="h-full canvas-bg flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 mx-auto flex items-center justify-center mb-3"><I.Shield className="w-6 h-6"/></div>
+        <h1 className="font-display text-lg font-bold text-stone-900">Players module — access restricted</h1>
+        <p className="text-[13px] text-stone-600 mt-2 leading-relaxed">
+          {role
+            ? <>You are signed in as <span className="font-semibold capitalize">{role}</span>. This area is for players. Please sign in with a player account to continue.</>
+            : <>You aren’t signed in yet. The Centralize login portal will ask you to pick your role (Player, Coach, or Trainer).</>}
+        </p>
+        <a href="login.html" className="inline-block mt-5 px-4 py-2 text-[13px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 btn-press">Go to login</a>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   SIDEBAR
+   ========================================================================= */
+function Sidebar({ active, onSelect, collapsed, onToggleCollapse, unreadCount, onLogout, currentUser }) {
+  const groups = [
+    { label: 'Overview', items: [
+      { id:'dashboard', name:'Dashboard',   icon:I.Home },
+      { id:'me',        name:'My Profile',  icon:I.User },
+      { id:'team',      name:'Teammates',   icon:I.Users },
+    ]},
+    { label: 'Performance', items: [
+      { id:'myStats',   name:'My Stats',    icon:I.Stats },
+      { id:'teamStats', name:'Team Stats',  icon:I.Trophy },
+      { id:'games',     name:'Games',       icon:I.Calendar },
+      { id:'attrs',     name:'Attributes',  icon:I.Dumb },
+    ]},
+    { label: 'Strategy', items: [
+      { id:'plays',     name:'Plays',       icon:I.Plays },
+      { id:'videos',    name:'Videos',      icon:I.Video },
+      { id:'rotations', name:'Rotations',   icon:I.Rotate },
+    ]},
+    { label: 'Schedule', items: [
+      { id:'training',  name:'Training',    icon:I.Pin },
+      { id:'workouts',  name:'Workouts',    icon:I.Dumb },
+      { id:'diet',      name:'Diet',        icon:I.Apple },
+    ]},
+    { label: 'Comms', items: [
+      { id:'messages',  name:'Messages',    icon:I.Mail, badge: unreadCount > 0 ? unreadCount : null },
+    ]},
+  ];
+
+  if (collapsed) {
+    return (
+      <aside className="w-16 bg-stone-50 border-r border-stone-200 flex flex-col h-full shrink-0">
+        <div className="px-3 pt-5 pb-3 border-b border-stone-200 flex justify-center">
+          <button onClick={onToggleCollapse} title="Expand sidebar"
+            className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+            <I.Court className="w-5 h-5 text-white"/>
+          </button>
+        </div>
+        <nav className="flex-1 overflow-y-auto py-3">
+          {groups.flatMap(g => g.items).map(it => {
+            const Icon = it.icon;
+            const isActive = active === it.id;
+            return (
+              <button key={it.id} onClick={() => onSelect(it.id)} title={it.name}
+                className={`w-full flex items-center justify-center py-2.5 my-0.5 relative ${isActive ? 'text-blue-700' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'}`}>
+                <Icon className="w-5 h-5"/>
+                {it.badge && <span className="absolute top-1 right-3 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{it.badge}</span>}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="w-60 bg-stone-50 border-r border-stone-200 flex flex-col h-full shrink-0">
+      <div className="px-4 pt-4 pb-4 border-b border-stone-200 flex items-center gap-3">
+        <button onClick={onToggleCollapse} title="Collapse"
+          className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm hover:scale-105 transition-transform shrink-0">
+          <I.Court className="w-5 h-5 text-white"/>
+        </button>
+        <div className="min-w-0">
+          <div className="font-display text-[15.5px] font-bold text-stone-900 leading-tight">Centralize</div>
+          <div className="text-[11px] text-stone-500 leading-tight">Players Module</div>
+        </div>
+      </div>
+      <nav className="flex-1 overflow-y-auto py-2 pr-1.5">
+        {groups.map((g) => (
+          <div key={g.label} className="mb-2">
+            <div className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-400 px-4 py-1.5">{g.label}</div>
+            {g.items.map((it) => {
+              const Icon = it.icon;
+              const isActive = active === it.id;
+              return (
+                <button key={it.id} onClick={() => onSelect(it.id)}
+                  className={`w-full flex items-center gap-2.5 pl-4 pr-3 py-1.5 text-[13px] font-medium ${isActive ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100 border-r-2 border-transparent'}`}>
+                  <Icon className="w-4 h-4 shrink-0"/>
+                  <span className="flex-1 text-left truncate">{it.name}</span>
+                  {it.badge && <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10.5px] font-bold flex items-center justify-center">{it.badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+      <div className="border-t border-stone-200 px-3 py-3">
+        {currentUser && (
+          <div className="flex items-center gap-2.5 mb-2 px-1">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-[11.5px] font-bold shrink-0">
+              {(currentUser.name || '?').split(' ').map(w => w[0]).join('').slice(0,2)}
+            </div>
+            <div className="min-w-0">
+              <div className="text-[12.5px] font-semibold text-stone-800 truncate">{currentUser.name}</div>
+              <div className="text-[10.5px] text-stone-500">#{currentUser.number} • {currentUser.position}</div>
+            </div>
+          </div>
+        )}
+        <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-[12px] font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded">
+          <I.Logout className="w-4 h-4"/> Sign out
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+/* =========================================================================
+   APP HEAD — the rest of the app (pages + App component) is defined below.
+   Pages are placed in dependency order so React can see them when App mounts.
+   ROUTES is declared here so the pages section can assign into it without
+   running into a temporal-dead-zone error.
+   ========================================================================= */
+let ROUTES = {};
+
+/* =========================================================================
+   DASHBOARD (DASH-01..05) — role-specific landing page for a player.
+   ========================================================================= */
+function DashboardPage({ currentUser, roster }) {
+  const { go } = useRouter();
+  const games = useCollection('games', SEED_GAMES);
+  const stats = useCollection('gameStats', SEED_GAME_STATS);
+  const training = useCollection('training', SEED_TRAINING);
+  const messages = useCollection('messages', SEED_MESSAGES);
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+
+  const myProfile = profiles.items.find(p => p.playerId === currentUser.id);
+  const myStats = stats.items.filter(s => s.playerId === currentUser.id);
+  const completedGames = games.items.filter(g => g.status === 'completed').sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const wins = games.items.filter(g => g.status === 'completed' && (g.teamScore||0) > (g.oppScore||0)).length;
+  const losses = games.items.filter(g => g.status === 'completed' && (g.teamScore||0) < (g.oppScore||0)).length;
+
+  // DASH-04: next training session (date >= today)
+  const today = new Date().toISOString().slice(0,10);
+  const upcoming = [...training.items].filter(t => (t.date||'') >= today).sort((a,b) => (a.date||'').localeCompare(b.date||''))[0];
+
+  // DASH-02: team leaders by category — derived from stats
+  const leaders = useMemo(() => {
+    const cats = ['pts','ast','reb','stl','blk'];
+    const out = {};
+    for (const c of cats) {
+      const tallies = {};
+      for (const s of stats.items) tallies[s.playerId] = (tallies[s.playerId] || 0) + (s[c] || 0);
+      const sorted = Object.entries(tallies).sort((a,b) => b[1] - a[1]).slice(0, 3);
+      out[c] = sorted.map(([pid, total]) => {
+        const games = stats.items.filter(s => s.playerId === pid).length || 1;
+        const pl = roster.find(r => r.id === pid);
+        return { player: pl, avg: total / games, total };
+      });
+    }
+    return out;
+  }, [stats.items, roster]);
+
+  // DASH-05: unread count for this player
+  const unread = messages.items.filter(m => {
+    if (m.from?.userId === currentUser.id) return false;
+    const isMine = m.to?.scope === 'team' || (m.to?.scope === 'player' && m.to?.playerId === currentUser.id);
+    return isMine && !(m.readBy && m.readBy[currentUser.id]);
+  }).length;
+
+  // Quick personal averages
+  const avg = (key) => myStats.length ? (myStats.reduce((a,s) => a + (s[key]||0), 0) / myStats.length) : 0;
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={`Welcome back, ${currentUser.name.split(' ').slice(-1)[0]}`}
+        subtitle={`#${currentUser.number} • ${currentUser.position} • ${myStats.length} games played`}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          {/* My stat tiles */}
+          <div className="col-span-12 lg:col-span-8 grid grid-cols-4 gap-3">
+            {[
+              { key:'pts', label:'PPG', val: avg('pts').toFixed(1) },
+              { key:'ast', label:'APG', val: avg('ast').toFixed(1) },
+              { key:'reb', label:'RPG', val: avg('reb').toFixed(1) },
+              { key:'stl', label:'SPG', val: avg('stl').toFixed(1) },
+            ].map(t => (
+              <button key={t.key} onClick={() => go('myStats')} className="bg-white rounded-xl border border-stone-200 p-4 text-left hover:shadow-sm hover:border-blue-200 transition">
+                <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">{t.label}</div>
+                <div className="font-display text-3xl font-bold text-stone-900 mt-1">{t.val}</div>
+                <div className="text-[11px] text-stone-400 mt-0.5">across {myStats.length} games</div>
+              </button>
+            ))}
+          </div>
+          {/* W/L Donut (DASH-03 + STAT-07) */}
+          <div className="col-span-12 lg:col-span-4 bg-white rounded-xl border border-stone-200 p-4">
+            <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2">Season record</div>
+            <div className="flex items-center gap-4">
+              <WLDonut wins={wins} losses={losses}/>
+              <div>
+                <div className="text-[26px] font-display font-bold text-stone-900 leading-none">{wins}<span className="text-stone-400">–</span>{losses}</div>
+                <div className="text-[11.5px] text-stone-500 mt-1">{wins + losses ? Math.round(wins/(wins+losses)*100) : 0}% win rate</div>
+                <button onClick={() => go('teamStats')} className="text-[11.5px] text-blue-700 font-medium mt-2 hover:underline">View team stats →</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Team Leaders (DASH-02 + STAT-08) */}
+          <div className="col-span-12 lg:col-span-8 bg-white rounded-xl border border-stone-200 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-display text-[15px] font-semibold text-stone-900">Team Leaders</div>
+                <div className="text-[11.5px] text-stone-500">Per-game averages, top 3</div>
+              </div>
+              <button onClick={() => go('teamStats')} className="text-[11.5px] text-blue-700 font-medium hover:underline">All leaders →</button>
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+              {[
+                { key:'pts', label:'Points' },
+                { key:'ast', label:'Assists' },
+                { key:'reb', label:'Rebounds' },
+                { key:'stl', label:'Steals' },
+                { key:'blk', label:'Blocks' },
+              ].map(cat => (
+                <div key={cat.key} className="border border-stone-200 rounded-lg p-2.5 bg-stone-50">
+                  <div className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider mb-1">{cat.label}</div>
+                  {(leaders[cat.key] || []).map((l, i) => l.player && (
+                    <button key={l.player.id} onClick={() => go('teammate', { playerId: l.player.id })}
+                      className="w-full text-left flex items-center gap-1.5 py-0.5 hover:underline">
+                      <span className="text-[10.5px] font-mono text-stone-400">{i+1}.</span>
+                      <span className={`text-[11.5px] font-medium truncate ${l.player.id === currentUser.id ? 'text-blue-700' : 'text-stone-800'}`}>{l.player.name.split(' ')[1] || l.player.name}</span>
+                      <span className="ml-auto text-[11px] font-mono text-stone-600">{l.avg.toFixed(1)}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming training (DASH-04) */}
+          <div className="col-span-12 lg:col-span-4 bg-white rounded-xl border border-stone-200 p-4 flex flex-col">
+            <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2">Next training</div>
+            {upcoming ? (
+              <button onClick={() => go('training')} className="text-left">
+                <div className="font-display text-[15px] font-semibold text-stone-900">{upcoming.title}</div>
+                <div className="text-[12px] text-stone-600 mt-1">{fmtDate(upcoming.date)} • {upcoming.startTime}–{upcoming.endTime}</div>
+                <div className="text-[12px] text-stone-500 mt-0.5">{upcoming.location}</div>
+                <div className="text-[12px] text-stone-500 mt-2 line-clamp-2">{upcoming.objectives}</div>
+                <span className="text-[11.5px] text-blue-700 font-medium mt-3 inline-block hover:underline">Full schedule →</span>
+              </button>
+            ) : <div className="text-[12px] text-stone-500">No upcoming sessions.</div>}
+          </div>
+
+          {/* Recent games */}
+          <div className="col-span-12 lg:col-span-7 bg-white rounded-xl border border-stone-200 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-display text-[15px] font-semibold text-stone-900">Recent games</div>
+              <button onClick={() => go('games')} className="text-[11.5px] text-blue-700 font-medium hover:underline">All games →</button>
+            </div>
+            <table className="w-full text-[12.5px]">
+              <thead>
+                <tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-100">
+                  <th className="text-left py-1.5 font-semibold">Date</th>
+                  <th className="text-left font-semibold">Opponent</th>
+                  <th className="text-center font-semibold">Result</th>
+                  <th className="text-right font-semibold">My line</th>
+                </tr>
+              </thead>
+              <tbody>
+                {completedGames.slice(0, 4).map(g => {
+                  const mine = stats.items.find(s => s.gameId === g.id && s.playerId === currentUser.id);
+                  const win = (g.teamScore||0) > (g.oppScore||0);
+                  return (
+                    <tr key={g.id} className="border-b border-stone-50 hover:bg-stone-50 cursor-pointer" onClick={() => go('gameDetail', { gameId: g.id })}>
+                      <td className="py-1.5 text-stone-600 font-mono">{g.date?.slice(5)}</td>
+                      <td className="text-stone-800 font-medium">{g.homeAway === 'home' ? 'vs' : '@'} {g.opponent}</td>
+                      <td className="text-center">
+                        <span className={`inline-block w-5 h-5 rounded text-[10.5px] font-bold text-white leading-5 ${win ? 'bg-emerald-600' : 'bg-red-500'}`}>{win ? 'W' : 'L'}</span>
+                        <span className="ml-2 font-mono text-stone-700">{g.teamScore}–{g.oppScore}</span>
+                      </td>
+                      <td className="text-right font-mono text-stone-700">{mine ? `${mine.pts}p / ${mine.ast}a / ${mine.reb}r` : '—'}</td>
+                    </tr>
+                  );
+                })}
+                {completedGames.length === 0 && (
+                  <tr><td colSpan={4} className="text-center text-stone-500 py-3">No completed games yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Inbox preview (DASH-05) */}
+          <div className="col-span-12 lg:col-span-5 bg-white rounded-xl border border-stone-200 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-display text-[15px] font-semibold text-stone-900 flex items-center gap-2">
+                Inbox
+                {unread > 0 && <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10.5px] font-bold inline-flex items-center justify-center">{unread}</span>}
+              </div>
+              <button onClick={() => go('messages')} className="text-[11.5px] text-blue-700 font-medium hover:underline">Open inbox →</button>
+            </div>
+            <div className="space-y-1.5">
+              {[...messages.items]
+                .filter(m => m.to?.scope === 'team' || (m.to?.scope === 'player' && m.to?.playerId === currentUser.id))
+                .sort((a,b) => (b.sentAt||0) - (a.sentAt||0)).slice(0, 4)
+                .map(m => {
+                  const isUnread = !(m.readBy && m.readBy[currentUser.id]);
+                  return (
+                    <button key={m.id} onClick={() => go('messages', { messageId: m.id })}
+                      className="w-full text-left flex items-start gap-2.5 py-1.5 border-b border-stone-50 last:border-0 hover:bg-stone-50 px-2 rounded">
+                      <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${isUnread ? 'bg-blue-500' : 'bg-transparent'}`}/>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className={`text-[12.5px] truncate ${isUnread ? 'font-semibold text-stone-900' : 'font-medium text-stone-700'}`}>{m.from?.name}</span>
+                          <span className="text-[10.5px] text-stone-400 shrink-0">{fmtRelative(m.sentAt)}</span>
+                        </div>
+                        <div className="text-[12px] text-stone-600 truncate">{m.subject}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Profile verification reminder */}
+          {myProfile && !myProfile.verified && (
+            <div className="col-span-12 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <I.Bell className="w-5 h-5 text-amber-700 shrink-0 mt-0.5"/>
+              <div className="flex-1">
+                <div className="text-[13.5px] font-semibold text-amber-900">Your profile is awaiting verification</div>
+                <div className="text-[12.5px] text-amber-800 mt-0.5">Coach R. Patterson hasn’t verified your profile yet. Make sure all fields are complete and accurate.</div>
+              </div>
+              <button onClick={() => go('me')} className="text-[12px] font-semibold text-amber-900 px-3 py-1.5 rounded-md bg-white border border-amber-300 hover:bg-amber-100 btn-press">Review my profile</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WLDonut({ wins = 0, losses = 0, size = 84 }) {
+  const total = wins + losses;
+  const wPct = total ? wins / total : 0;
+  const r = size / 2 - 8;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#fee2e2" strokeWidth="10"/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#059669" strokeWidth="10"
+        strokeDasharray={`${c * wPct} ${c}`} strokeDashoffset={c / 4} transform={`rotate(-90 ${size/2} ${size/2})`} strokeLinecap="round"/>
+      <text x={size/2} y={size/2 + 4} textAnchor="middle" fontSize="13" fontWeight="700" fill="#0f172a">{total ? Math.round(wPct*100)+'%' : '—'}</text>
+    </svg>
+  );
+}
+
+/* =========================================================================
+   MY PROFILE (PROF-01..04, ATTR-04)
+   ========================================================================= */
+function MyProfilePage({ currentUser }) {
+  const { go } = useRouter();
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+  const attributes = useCollection('attributes', []);
+  const [editOpen, setEditOpen] = useState(false);
+  const [draft, setDraft] = useState(null);
+
+  if (!profiles.loaded) return <div className="flex-1 flex items-center justify-center text-stone-500 text-[13px]">Loading profile…</div>;
+
+  let profile = profiles.items.find(p => p.playerId === currentUser.id);
+
+  // PROF-01: create on first login if missing
+  if (!profile) {
+    return <ProfileWizard currentUser={currentUser} onCreate={async (data) => {
+      const newP = { id: `pp-${currentUser.id}`, playerId: currentUser.id, ...data, verified: false, verifiedBy: null, verifiedAt: null, photoDataUrl: null };
+      await profiles.save(newP);
+    }}/>;
+  }
+
+  const myAttr = attributes.items.find(a => a.playerId === currentUser.id);
+
+  const startEdit = () => { setDraft({ ...profile }); setEditOpen(true); };
+  const saveEdit = async () => {
+    if (!draft) return;
+    // Edits invalidate verification (Coach must re-approve)
+    const wasVerified = profile.verified;
+    const next = { ...draft };
+    if (wasVerified && JSON.stringify({ ...draft, photoDataUrl: undefined }) !== JSON.stringify({ ...profile, photoDataUrl: undefined })) {
+      next.verified = false; next.verifiedBy = null; next.verifiedAt = null;
+    }
+    await profiles.save(next);
+    setEditOpen(false);
+  };
+
+  const handlePhoto = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      // Downsample by drawing onto a 640px-max canvas
+      const img = new Image();
+      img.onload = async () => {
+        const max = 640;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        await profiles.save({ ...profile, photoDataUrl: dataUrl });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="My profile" subtitle="Your personal information — your coach reviews and verifies it."
+        actions={
+          <button onClick={startEdit} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 btn-press flex items-center gap-1.5">
+            <I.Pencil className="w-4 h-4"/> Edit
+          </button>
+        }/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          {/* Photo + headline */}
+          <div className="col-span-12 lg:col-span-4 bg-white rounded-xl border border-stone-200 p-5">
+            <div className="flex flex-col items-center text-center">
+              <label className="relative cursor-pointer group">
+                {profile.photoDataUrl ? (
+                  <img src={profile.photoDataUrl} alt="me" className="w-32 h-32 rounded-full object-cover border-4 border-blue-100"/>
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white font-display text-3xl font-bold flex items-center justify-center border-4 border-blue-100">
+                    {profile.fullName.split(' ').map(w => w[0]).join('').slice(0,2)}
+                  </div>
+                )}
+                <div className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-white border border-stone-200 shadow flex items-center justify-center text-stone-700 group-hover:bg-stone-50">
+                  <I.Camera className="w-4.5 h-4.5"/>
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhoto(e.target.files?.[0])}/>
+              </label>
+              <div className="mt-4">
+                <div className="font-display text-xl font-bold text-stone-900">{profile.fullName}</div>
+                <div className="text-[13px] text-stone-500 mt-0.5">#{profile.jerseyNumber} • {profile.position}</div>
+                <div className="mt-2"><VerifiedBadge verified={profile.verified} verifiedBy={profile.verifiedBy} verifiedAt={profile.verifiedAt}/></div>
+              </div>
+              {profile.bio && <p className="text-[12.5px] text-stone-600 mt-4 leading-relaxed">{profile.bio}</p>}
+            </div>
+          </div>
+          {/* Personal info */}
+          <div className="col-span-12 lg:col-span-8 bg-white rounded-xl border border-stone-200 p-5">
+            <div className="font-display text-[15px] font-semibold text-stone-900 mb-3">Personal information</div>
+            <dl className="grid grid-cols-2 gap-y-3 gap-x-6 text-[13px]">
+              <ProfRow label="Date of birth" value={profile.dateOfBirth ? fmtDate(profile.dateOfBirth) : '—'}/>
+              <ProfRow label="Age" value={profile.age}/>
+              <ProfRow label="Height" value={profile.height}/>
+              <ProfRow label="Weight (lb)" value={profile.weight}/>
+              <ProfRow label="Phone" value={profile.contactPhone}/>
+              <ProfRow label="Email" value={profile.contactEmail}/>
+              <ProfRow label="Jersey #" value={profile.jerseyNumber}/>
+              <ProfRow label="Position" value={profile.position}/>
+            </dl>
+            <div className="mt-5 pt-4 border-t border-stone-100 text-[11.5px] text-stone-500 leading-relaxed">
+              <span className="font-semibold text-stone-700">Note:</span> editing any field will require re-verification by your coach.
+              Verified data flows to the coach module’s roster + game stat entry surfaces.
+            </div>
+          </div>
+          {/* ATTR-04: physical attributes (trainer-owned) */}
+          <div className="col-span-12 bg-white rounded-xl border border-stone-200 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-display text-[15px] font-semibold text-stone-900">Physical attributes</div>
+                <div className="text-[11.5px] text-stone-500">Recorded by your trainer (ATTR-01) — read-only here.</div>
+              </div>
+              {myAttr && <span className="text-[11px] text-stone-400">Last updated {fmtRelative(myAttr.recordedAt)} by {myAttr.recordedBy}</span>}
+            </div>
+            {!myAttr ? <div className="text-[12.5px] text-stone-500">No attribute record yet.</div> : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <AttrTile label="Height" value={`${myAttr.heightCm} cm`}/>
+                <AttrTile label="Weight" value={`${myAttr.weightKg} kg`}/>
+                <AttrTile label="Body fat" value={`${myAttr.bodyFatPct}%`}/>
+                <AttrTile label="Wingspan" value={`${myAttr.wingspanCm} cm`}/>
+                <AttrTile label="Vertical" value={`${myAttr.verticalInches}"`}/>
+                <AttrTile label="40 yd" value={`${myAttr.fortyYdSec.toFixed(2)}s`}/>
+              </div>
+            )}
+            {myAttr?.history?.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-stone-100">
+                <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mb-2">History</div>
+                <table className="w-full text-[12px]">
+                  <thead><tr className="text-stone-500 text-[10.5px] uppercase">
+                    <th className="text-left font-semibold py-1">Date</th><th className="text-right font-semibold">Wt (kg)</th><th className="text-right font-semibold">BF %</th><th className="text-right font-semibold">Vert "</th>
+                  </tr></thead>
+                  <tbody>
+                    {myAttr.history.map(h => (
+                      <tr key={h.date} className="border-t border-stone-50">
+                        <td className="py-1 font-mono text-stone-600">{h.date}</td>
+                        <td className="text-right font-mono">{h.weightKg}</td>
+                        <td className="text-right font-mono">{h.bodyFatPct}</td>
+                        <td className="text-right font-mono">{h.verticalInches}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Edit modal */}
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit profile" subtitle="Edits will need to be re-verified by your coach." size="lg"
+        footer={<>
+          <button onClick={() => setEditOpen(false)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={saveEdit} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-blue-600 hover:bg-blue-700 btn-press">Save</button>
+        </>}>
+        {draft && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <TextField label="Full name" value={draft.fullName} onChange={v => setDraft(d => ({...d, fullName:v}))} required/>
+            <TextField label="Date of birth" value={draft.dateOfBirth} onChange={v => setDraft(d => ({...d, dateOfBirth:v}))} type="date"/>
+            <NumberField label="Age" value={draft.age} onChange={v => setDraft(d => ({...d, age:v}))} min={10} max={60}/>
+            <TextField label="Height" value={draft.height} onChange={v => setDraft(d => ({...d, height:v}))} placeholder={`e.g. 6'2"`}/>
+            <NumberField label="Weight (lb)" value={draft.weight} onChange={v => setDraft(d => ({...d, weight:v}))} min={80} max={400}/>
+            <NumberField label="Jersey #" value={draft.jerseyNumber} onChange={v => setDraft(d => ({...d, jerseyNumber:v}))} min={0} max={99}/>
+            <SelectField label="Position" value={draft.position} onChange={v => setDraft(d => ({...d, position:v}))}
+              options={['PG','SG','SF','PF','C'].map(p => ({ value:p, label:p }))}/>
+            <TextField label="Phone" value={draft.contactPhone} onChange={v => setDraft(d => ({...d, contactPhone:v}))}/>
+            <div className="col-span-2"><TextField label="Email" value={draft.contactEmail} onChange={v => setDraft(d => ({...d, contactEmail:v}))} type="email"/></div>
+            <div className="col-span-2"><TextArea label="Bio (optional)" rows={3} value={draft.bio} onChange={v => setDraft(d => ({...d, bio:v}))}/></div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+function ProfRow({ label, value }) {
+  return (
+    <div>
+      <dt className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{label}</dt>
+      <dd className="text-stone-900 mt-0.5">{value || <span className="text-stone-400">—</span>}</dd>
+    </div>
+  );
+}
+function AttrTile({ label, value }) {
+  return (
+    <div className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2.5">
+      <div className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{label}</div>
+      <div className="font-display text-[17px] font-bold text-stone-900">{value}</div>
+    </div>
+  );
+}
+
+/* PROF-01: first-login wizard */
+function ProfileWizard({ currentUser, onCreate }) {
+  const [data, setData] = useState({
+    fullName: currentUser.name, age: null, height: '', weight: null,
+    contactPhone: '', contactEmail: '', dateOfBirth: '',
+    jerseyNumber: currentUser.number, position: currentUser.position, bio: '',
+  });
+  const can = data.fullName && data.contactEmail && data.dateOfBirth;
+  return (
+    <div className="flex-1 overflow-y-auto p-8 canvas-bg">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center"><I.User className="w-5 h-5"/></div>
+          <div>
+            <h1 className="font-display text-xl font-bold text-stone-900">Welcome to Centralize</h1>
+            <p className="text-[12.5px] text-stone-500">Let’s build your athlete profile. Your coach will verify it after.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-4 mt-5">
+          <TextField label="Full name" value={data.fullName} onChange={v => setData(d => ({...d, fullName:v}))} required/>
+          <TextField label="Date of birth" value={data.dateOfBirth} onChange={v => setData(d => ({...d, dateOfBirth:v}))} type="date" required/>
+          <NumberField label="Age" value={data.age} onChange={v => setData(d => ({...d, age:v}))} min={10} max={60}/>
+          <TextField label="Height" value={data.height} onChange={v => setData(d => ({...d, height:v}))} placeholder={`e.g. 6'2"`}/>
+          <NumberField label="Weight (lb)" value={data.weight} onChange={v => setData(d => ({...d, weight:v}))}/>
+          <NumberField label="Jersey #" value={data.jerseyNumber} onChange={v => setData(d => ({...d, jerseyNumber:v}))} min={0} max={99}/>
+          <SelectField label="Position" value={data.position} onChange={v => setData(d => ({...d, position:v}))}
+            options={['PG','SG','SF','PF','C'].map(p => ({ value:p, label:p }))}/>
+          <TextField label="Phone" value={data.contactPhone} onChange={v => setData(d => ({...d, contactPhone:v}))}/>
+          <div className="col-span-2"><TextField label="Email" value={data.contactEmail} onChange={v => setData(d => ({...d, contactEmail:v}))} type="email" required/></div>
+          <div className="col-span-2"><TextArea label="Bio (optional)" rows={3} value={data.bio} onChange={v => setData(d => ({...d, bio:v}))}/></div>
+        </div>
+        <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-stone-100">
+          <button disabled={!can} onClick={() => onCreate(data)} className="px-4 py-2 text-[13px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-stone-300 btn-press">Create my profile</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   TEAMMATES + ROSTER (PROF-05/06/07)
+   ========================================================================= */
+function TeammatesPage({ currentUser, roster }) {
+  const { go } = useRouter();
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+  const [sortBy, setSortBy] = useState('number');
+  const [filterPos, setFilterPos] = useState('all');
+  const [query, setQuery] = useState('');
+
+  const rows = useMemo(() => {
+    let r = roster.map(p => ({ ...p, profile: profiles.items.find(pp => pp.playerId === p.id) }));
+    if (filterPos !== 'all') r = r.filter(x => x.position === filterPos);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      r = r.filter(x => x.name.toLowerCase().includes(q) || (x.profile?.fullName||'').toLowerCase().includes(q));
+    }
+    if (sortBy === 'number') r.sort((a,b) => a.number - b.number);
+    else if (sortBy === 'name') r.sort((a,b) => a.name.localeCompare(b.name));
+    else if (sortBy === 'position') r.sort((a,b) => a.position.localeCompare(b.position));
+    return r;
+  }, [roster, profiles.items, sortBy, filterPos, query]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Teammates" subtitle="The full team roster — sort and filter as you like."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <I.Search className="w-4 h-4 absolute left-2.5 top-2.5 text-stone-400"/>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search teammates…"
+            className="w-full pl-8 pr-3 py-1.5 text-[12.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+        <select value={filterPos} onChange={e => setFilterPos(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="all">All positions</option>
+          {['PG','SG','SF','PF','C'].map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="number">Sort: Jersey #</option>
+          <option value="name">Sort: Name</option>
+          <option value="position">Sort: Position</option>
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {rows.map(r => (
+            <button key={r.id} onClick={() => go('teammate', { playerId: r.id })}
+              className={`bg-white rounded-xl border ${r.id === currentUser.id ? 'border-blue-300 ring-1 ring-blue-100' : 'border-stone-200'} p-4 text-left hover:shadow-sm hover:border-blue-200 transition`}>
+              <div className="flex items-center gap-3">
+                {r.profile?.photoDataUrl ? (
+                  <img src={r.profile.photoDataUrl} alt={r.name} className="w-12 h-12 rounded-full object-cover"/>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-stone-300 to-stone-500 text-white font-bold flex items-center justify-center text-[14px]">
+                    {r.name.split(' ').map(w => w[0]).join('').slice(0,2)}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">#{r.number}</span>
+                    <span className="text-[12px] text-stone-500 font-medium">{r.position}</span>
+                    {r.id === currentUser.id && <span className="text-[10px] font-semibold text-blue-700 ml-auto">YOU</span>}
+                  </div>
+                  <div className="font-display text-[14px] font-semibold text-stone-900 truncate mt-0.5">{r.profile?.fullName || r.name}</div>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between">
+                <VerifiedBadge verified={r.profile?.verified} verifiedBy={r.profile?.verifiedBy} verifiedAt={r.profile?.verifiedAt} compact/>
+                <span className="text-[11px] text-stone-400">View →</span>
+              </div>
+            </button>
+          ))}
+        </div>
+        {rows.length === 0 && <div className="text-center text-stone-500 py-8 text-[13px]">No teammates match those filters.</div>}
+      </div>
+    </div>
+  );
+}
+
+/* PROF-05 + STAT-06: teammate detail */
+function TeammateDetailPage({ currentUser, roster }) {
+  const { params, go } = useRouter();
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+  const stats = useCollection('gameStats', SEED_GAME_STATS);
+  const games = useCollection('games', SEED_GAMES);
+
+  const player = roster.find(r => r.id === params.playerId);
+  if (!player) return <div className="flex-1 flex items-center justify-center text-stone-500">Player not found.</div>;
+  const profile = profiles.items.find(p => p.playerId === player.id);
+  const lines = stats.items.filter(s => s.playerId === player.id);
+  const avg = (k) => lines.length ? (lines.reduce((a,s) => a + (s[k]||0), 0) / lines.length).toFixed(1) : '—';
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={profile?.fullName || player.name} subtitle={`#${player.number} • ${player.position}`}
+        actions={<button onClick={() => go('team')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>Roster</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          <div className="col-span-12 lg:col-span-4 bg-white rounded-xl border border-stone-200 p-5">
+            <div className="flex flex-col items-center text-center">
+              {profile?.photoDataUrl ? (
+                <img src={profile.photoDataUrl} className="w-28 h-28 rounded-full object-cover border-4 border-stone-100"/>
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-stone-300 to-stone-500 text-white font-display text-2xl font-bold flex items-center justify-center border-4 border-stone-100">
+                  {(profile?.fullName || player.name).split(' ').map(w => w[0]).join('').slice(0,2)}
+                </div>
+              )}
+              <div className="mt-3 font-display text-lg font-bold text-stone-900">{profile?.fullName || player.name}</div>
+              <div className="text-[12.5px] text-stone-500">#{player.number} • {player.position}</div>
+              {profile && <div className="mt-2"><VerifiedBadge verified={profile.verified} verifiedBy={profile.verifiedBy} verifiedAt={profile.verifiedAt}/></div>}
+              {profile?.bio && <p className="text-[12.5px] text-stone-600 mt-4 leading-relaxed">{profile.bio}</p>}
+            </div>
+            {profile && (
+              <dl className="mt-5 pt-4 border-t border-stone-100 grid grid-cols-2 gap-y-2 gap-x-3 text-[12px]">
+                <ProfRow label="Height" value={profile.height}/>
+                <ProfRow label="Weight" value={profile.weight ? `${profile.weight} lb` : '—'}/>
+                <ProfRow label="Age" value={profile.age}/>
+                <ProfRow label="DOB" value={profile.dateOfBirth ? fmtDate(profile.dateOfBirth) : '—'}/>
+                <ProfRow label="Phone" value={profile.contactPhone}/>
+                <ProfRow label="Email" value={profile.contactEmail}/>
+              </dl>
+            )}
+          </div>
+          <div className="col-span-12 lg:col-span-8 space-y-5">
+            <div className="bg-white rounded-xl border border-stone-200 p-5">
+              <div className="font-display text-[15px] font-semibold text-stone-900 mb-3">Per-game averages</div>
+              <div className="grid grid-cols-6 gap-3">
+                {['pts','ast','reb','stl','blk','min'].map(k => (
+                  <div key={k} className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-center">
+                    <div className="text-[10px] font-semibold text-stone-500 uppercase">{k}</div>
+                    <div className="font-display text-lg font-bold text-stone-900">{avg(k)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-stone-200 p-5">
+              <div className="font-display text-[15px] font-semibold text-stone-900 mb-3">Game log</div>
+              <table className="w-full text-[12px]">
+                <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                  <th className="text-left py-1 font-semibold">Date</th><th className="text-left font-semibold">Opp</th>
+                  <th className="text-right font-semibold">MIN</th><th className="text-right font-semibold">PTS</th>
+                  <th className="text-right font-semibold">AST</th><th className="text-right font-semibold">REB</th>
+                  <th className="text-right font-semibold">STL</th><th className="text-right font-semibold">BLK</th>
+                </tr></thead>
+                <tbody>
+                  {lines.map(s => {
+                    const g = games.items.find(gg => gg.id === s.gameId);
+                    if (!g) return null;
+                    return (
+                      <tr key={s.id} className="border-t border-stone-50 hover:bg-stone-50 cursor-pointer" onClick={() => go('gameDetail', { gameId: g.id })}>
+                        <td className="py-1 font-mono text-stone-600">{g.date}</td>
+                        <td className="text-stone-800">{g.homeAway === 'home' ? 'vs' : '@'} {g.opponent}</td>
+                        <td className="text-right font-mono">{s.min}</td>
+                        <td className="text-right font-mono font-semibold">{s.pts}</td>
+                        <td className="text-right font-mono">{s.ast}</td>
+                        <td className="text-right font-mono">{s.reb}</td>
+                        <td className="text-right font-mono">{s.stl}</td>
+                        <td className="text-right font-mono">{s.blk}</td>
+                      </tr>
+                    );
+                  })}
+                  {lines.length === 0 && <tr><td colSpan={8} className="text-center text-stone-500 py-3">No games logged.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   MY STATS (STAT-05) + filters STAT-09/10
+   ========================================================================= */
+function MyStatsPage({ currentUser }) {
+  const { go } = useRouter();
+  const stats = useCollection('gameStats', SEED_GAME_STATS);
+  const games = useCollection('games', SEED_GAMES);
+  const [season, setSeason] = useState('all');
+  const [gameFilter, setGameFilter] = useState('all');
+
+  const seasons = useMemo(() => ['all', ...Array.from(new Set(games.items.map(g => g.season))).filter(Boolean)], [games.items]);
+  const mine = stats.items.filter(s => s.playerId === currentUser.id);
+  const enriched = mine.map(s => ({ ...s, game: games.items.find(g => g.id === s.gameId) })).filter(s => s.game);
+  let rows = enriched;
+  if (season !== 'all') rows = rows.filter(r => r.game.season === season);
+  if (gameFilter !== 'all') rows = rows.filter(r => r.gameId === gameFilter);
+  rows = [...rows].sort((a,b) => (b.game.date||'').localeCompare(a.game.date||''));
+
+  const avg = (k) => rows.length ? (rows.reduce((a,r) => a + (r[k]||0), 0) / rows.length).toFixed(1) : '—';
+  const totals = (k) => rows.reduce((a,r) => a + (r[k]||0), 0);
+  const pct = (m, a) => a > 0 ? (m / a * 100).toFixed(1) + '%' : '—';
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="My stats" subtitle={`Your stat history — ${rows.length} games shown.`}/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <select value={season} onChange={e => setSeason(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          {seasons.map(s => <option key={s} value={s}>{s === 'all' ? 'All seasons' : s}</option>)}
+        </select>
+        <select value={gameFilter} onChange={e => setGameFilter(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="all">All games</option>
+          {games.items.filter(g => g.status === 'completed').map(g => (
+            <option key={g.id} value={g.id}>{g.date} • {g.opponent}</option>
+          ))}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-6 gap-3 mb-5">
+          {[
+            { k:'pts', l:'PPG' }, { k:'ast', l:'APG' }, { k:'reb', l:'RPG' },
+            { k:'stl', l:'SPG' }, { k:'blk', l:'BPG' }, { k:'min', l:'MIN' },
+          ].map(t => (
+            <div key={t.k} className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{t.l}</div>
+              <div className="font-display text-2xl font-bold text-stone-900 mt-1">{avg(t.k)}</div>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="text-[10.5px] font-semibold text-stone-500 uppercase">FG%</div>
+            <div className="font-display text-xl font-bold text-stone-900">{pct(totals('fgm'), totals('fga'))}</div>
+            <div className="text-[11px] text-stone-400">{totals('fgm')}/{totals('fga')}</div>
+          </div>
+          <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="text-[10.5px] font-semibold text-stone-500 uppercase">3P%</div>
+            <div className="font-display text-xl font-bold text-stone-900">{pct(totals('tpm'), totals('tpa'))}</div>
+            <div className="text-[11px] text-stone-400">{totals('tpm')}/{totals('tpa')}</div>
+          </div>
+          <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="text-[10.5px] font-semibold text-stone-500 uppercase">FT%</div>
+            <div className="font-display text-xl font-bold text-stone-900">{pct(totals('ftm'), totals('fta'))}</div>
+            <div className="text-[11px] text-stone-400">{totals('ftm')}/{totals('fta')}</div>
+          </div>
+        </div>
+        <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Game log</div>
+          <table className="w-full text-[12px]">
+            <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+              {['Date','Opp','MIN','PTS','AST','REB','STL','BLK','FG','3P','FT','TOV','PF'].map(h => <th key={h} className="text-right font-semibold py-1 first:text-left last:pr-0">{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-t border-stone-50 hover:bg-stone-50 cursor-pointer" onClick={() => go('gameDetail', { gameId: r.gameId })}>
+                  <td className="py-1.5 font-mono text-stone-600">{r.game.date}</td>
+                  <td className="text-stone-800">{r.game.homeAway === 'home' ? 'vs' : '@'} {r.game.opponent}</td>
+                  <td className="text-right font-mono">{r.min}</td>
+                  <td className="text-right font-mono font-semibold">{r.pts}</td>
+                  <td className="text-right font-mono">{r.ast}</td>
+                  <td className="text-right font-mono">{r.reb}</td>
+                  <td className="text-right font-mono">{r.stl}</td>
+                  <td className="text-right font-mono">{r.blk}</td>
+                  <td className="text-right font-mono">{r.fgm}/{r.fga}</td>
+                  <td className="text-right font-mono">{r.tpm}/{r.tpa}</td>
+                  <td className="text-right font-mono">{r.ftm}/{r.fta}</td>
+                  <td className="text-right font-mono">{r.tov}</td>
+                  <td className="text-right font-mono">{r.pf}</td>
+                </tr>
+              ))}
+              {rows.length === 0 && <tr><td colSpan={13} className="text-center text-stone-500 py-3">No games matching that filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   TEAM STATS (STAT-07, STAT-08, STAT-09) — read-only leaderboard + W/L
+   ========================================================================= */
+function TeamStatsPage({ roster }) {
+  const { go } = useRouter();
+  const stats = useCollection('gameStats', SEED_GAME_STATS);
+  const games = useCollection('games', SEED_GAMES);
+  const teamStats = useCollection('teamStats', SEED_TEAM_STATS);
+  const [season, setSeason] = useState('all');
+  const filteredGames = games.items.filter(g => season === 'all' || g.season === season);
+  const wins = filteredGames.filter(g => g.status === 'completed' && (g.teamScore||0) > (g.oppScore||0)).length;
+  const losses = filteredGames.filter(g => g.status === 'completed' && (g.teamScore||0) < (g.oppScore||0)).length;
+
+  const leaderboards = useMemo(() => {
+    const eligibleIds = new Set(filteredGames.map(g => g.id));
+    const filteredStats = stats.items.filter(s => eligibleIds.has(s.gameId));
+    const cats = [
+      { k:'pts', l:'Points' },{ k:'ast', l:'Assists' },{ k:'reb', l:'Rebounds' },
+      { k:'stl', l:'Steals' },{ k:'blk', l:'Blocks' },{ k:'min', l:'Minutes' },
+    ];
+    const out = {};
+    for (const c of cats) {
+      const tallies = {};
+      for (const s of filteredStats) tallies[s.playerId] = (tallies[s.playerId] || 0) + (s[c.k] || 0);
+      const ranked = Object.entries(tallies).map(([pid, total]) => {
+        const g = filteredStats.filter(s => s.playerId === pid).length || 1;
+        return { player: roster.find(r => r.id === pid), avg: total / g, total };
+      }).filter(r => r.player).sort((a,b) => b.avg - a.avg);
+      out[c.k] = { label: c.l, rows: ranked };
+    }
+    return out;
+  }, [stats.items, filteredGames, roster]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Team stats" subtitle="Season record, leaderboards, and team averages."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <select value={season} onChange={e => setSeason(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="all">All seasons</option>
+          {Array.from(new Set(games.items.map(g => g.season))).filter(Boolean).map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5 mb-5">
+          <div className="col-span-12 md:col-span-4 bg-white border border-stone-200 rounded-xl p-5 flex items-center gap-4">
+            <WLDonut wins={wins} losses={losses} size={96}/>
+            <div>
+              <div className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">Record</div>
+              <div className="font-display text-3xl font-bold text-stone-900">{wins}-{losses}</div>
+              <div className="text-[12px] text-stone-500">{wins + losses ? Math.round(wins/(wins+losses)*100) : 0}% win rate</div>
+            </div>
+          </div>
+          <div className="col-span-12 md:col-span-8 bg-white border border-stone-200 rounded-xl p-5">
+            <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Team averages</div>
+            <div className="grid grid-cols-4 gap-3">
+              {(() => {
+                const filteredIds = new Set(filteredGames.map(g => g.id));
+                const ts = teamStats.items.filter(t => filteredIds.has(t.gameId));
+                const avg = (k) => ts.length ? (ts.reduce((a,t) => a + (t[k]||0), 0) / ts.length).toFixed(1) : '—';
+                return [
+                  { l:'FG%', v: avg('fgPct') },{ l:'3P%', v: avg('tpPct') },
+                  { l:'FT%', v: avg('ftPct') },{ l:'Reb', v: avg('reb') },
+                  { l:'Ast', v: avg('ast') },{ l:'TOV', v: avg('tov') },
+                  { l:'Stl', v: avg('stl') },{ l:'Blk', v: avg('blk') },
+                ].map(t => (
+                  <div key={t.l} className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+                    <div className="text-[10px] font-semibold text-stone-500 uppercase">{t.l}</div>
+                    <div className="font-display text-base font-bold text-stone-900">{t.v}</div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(leaderboards).map(([k, lb]) => (
+            <div key={k} className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <I.Trophy className="w-4 h-4 text-amber-500"/>
+                <div className="font-display text-[14px] font-semibold text-stone-900">{lb.label}</div>
+              </div>
+              <ol className="space-y-1">
+                {lb.rows.slice(0, 5).map((r, i) => (
+                  <li key={r.player.id}>
+                    <button onClick={() => go('teammate', { playerId: r.player.id })} className="w-full flex items-center gap-2 px-1.5 py-1 rounded hover:bg-stone-50 text-left">
+                      <span className="text-[11px] font-mono text-stone-400 w-4">{i+1}</span>
+                      <span className="text-[12.5px] font-mono text-blue-700 w-7">#{r.player.number}</span>
+                      <span className="text-[12.5px] text-stone-800 truncate flex-1">{r.player.name}</span>
+                      <span className="text-[12.5px] font-mono font-semibold text-stone-900">{r.avg.toFixed(1)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   GAMES (GAME-05) + GAME DETAIL / BOX SCORE (GAME-06)
+   ========================================================================= */
+function GamesPage({ currentUser, roster }) {
+  const { go } = useRouter();
+  const games = useCollection('games', SEED_GAMES);
+  const [filter, setFilter] = useState('all'); // all / completed / scheduled
+
+  const rows = [...games.items].sort((a,b) => (b.date||'').localeCompare(a.date||''))
+    .filter(g => filter === 'all' ? true : g.status === filter);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Games" subtitle="Full schedule and results."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        {[
+          { id:'all', label:'All' },
+          { id:'completed', label:'Completed' },
+          { id:'scheduled', label:'Scheduled' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            className={`px-3 py-1.5 text-[12px] font-semibold rounded-md ${filter === t.id ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{t.label}</button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+                <th className="text-left py-2.5 px-4 font-semibold">Date</th>
+                <th className="text-left font-semibold">Opponent</th>
+                <th className="text-left font-semibold">Season</th>
+                <th className="text-center font-semibold">Score</th>
+                <th className="text-center font-semibold">Result</th>
+                <th className="text-right font-semibold px-4">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(g => {
+                const win = g.status === 'completed' && (g.teamScore||0) > (g.oppScore||0);
+                return (
+                  <tr key={g.id} className="border-t border-stone-100 hover:bg-stone-50 cursor-pointer" onClick={() => go('gameDetail', { gameId: g.id })}>
+                    <td className="py-2.5 px-4 font-mono text-stone-700">{g.date}</td>
+                    <td className="text-stone-900 font-medium">{g.homeAway === 'home' ? 'vs' : '@'} {g.opponent}</td>
+                    <td className="text-stone-600 text-[12px]">{g.season}</td>
+                    <td className="text-center font-mono text-stone-900">
+                      {g.status === 'completed' ? `${g.teamScore}–${g.oppScore}` : <span className="text-stone-400">—</span>}
+                    </td>
+                    <td className="text-center">
+                      {g.status === 'completed'
+                        ? <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold text-white ${win ? 'bg-emerald-600' : 'bg-red-500'}`}>{win ? 'W' : 'L'}</span>
+                        : <span className="text-[11px] text-stone-500 bg-stone-100 px-2 py-0.5 rounded">Scheduled</span>}
+                    </td>
+                    <td className="text-right px-4"><span className="text-[12px] text-blue-700">{g.status === 'completed' ? 'Box score →' : 'Details →'}</span></td>
+                  </tr>
+                );
+              })}
+              {rows.length === 0 && <tr><td colSpan={6} className="text-center text-stone-500 py-6">No games match that filter.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GameDetailPage({ currentUser, roster }) {
+  const { params, go } = useRouter();
+  const games = useCollection('games', SEED_GAMES);
+  const stats = useCollection('gameStats', SEED_GAME_STATS);
+  const teamStats = useCollection('teamStats', SEED_TEAM_STATS);
+  const rotations = useCollection('rotations', SEED_ROTATIONS);
+  const game = games.items.find(g => g.id === params.gameId);
+  if (!game) return <div className="flex-1 flex items-center justify-center text-stone-500">Game not found.</div>;
+  const lines = stats.items.filter(s => s.gameId === game.id);
+  const team = teamStats.items.find(t => t.gameId === game.id);
+  const rot = rotations.items.find(r => r.gameId === game.id);
+  const win = game.status === 'completed' && (game.teamScore||0) > (game.oppScore||0);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader
+        title={`${game.homeAway === 'home' ? 'vs' : '@'} ${game.opponent}`}
+        subtitle={`${fmtDate(game.date)} • ${game.season}`}
+        actions={<button onClick={() => go('games')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>All games</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl p-5 mb-5 flex items-center justify-between">
+          <div className="text-center flex-1">
+            <div className="text-[11px] font-semibold text-stone-500 uppercase">Centralize</div>
+            <div className="font-display text-5xl font-bold text-stone-900">{game.teamScore ?? '—'}</div>
+          </div>
+          <div className="px-6">
+            {game.status === 'completed' ? (
+              <span className={`px-3 py-1 rounded-full font-bold text-white text-[12px] ${win ? 'bg-emerald-600' : 'bg-red-500'}`}>{win ? 'WIN' : 'LOSS'}</span>
+            ) : (
+              <span className="px-3 py-1 rounded-full bg-stone-200 text-stone-700 text-[12px] font-semibold">Scheduled</span>
+            )}
+          </div>
+          <div className="text-center flex-1">
+            <div className="text-[11px] font-semibold text-stone-500 uppercase">{game.opponent}</div>
+            <div className="font-display text-5xl font-bold text-stone-900">{game.oppScore ?? '—'}</div>
+          </div>
+        </div>
+
+        {team && (
+          <div className="bg-white border border-stone-200 rounded-xl p-5 mb-5">
+            <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Team stats</div>
+            <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+              {[['FG%',team.fgPct],['3P%',team.tpPct],['FT%',team.ftPct],['Reb',team.reb],['Ast',team.ast],['TOV',team.tov],['Stl',team.stl],['Blk',team.blk]].map(([l,v]) => (
+                <div key={l} className="bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-2 text-center">
+                  <div className="text-[10px] font-semibold text-stone-500 uppercase">{l}</div>
+                  <div className="font-display text-base font-bold text-stone-900">{v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {lines.length > 0 && (
+          <div className="bg-white border border-stone-200 rounded-xl p-5 mb-5">
+            <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Box score</div>
+            <table className="w-full text-[12px]">
+              <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                {['#','Player','MIN','PTS','AST','REB','STL','BLK','FG','3P','FT','TOV','PF'].map((h,i) => <th key={h} className={`${i < 2 ? 'text-left' : 'text-right'} font-semibold py-1.5`}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {lines.map(s => {
+                  const p = roster.find(r => r.id === s.playerId); if (!p) return null;
+                  const me = s.playerId === currentUser.id;
+                  return (
+                    <tr key={s.id} className={`border-t border-stone-50 ${me ? 'bg-blue-50/40' : 'hover:bg-stone-50'} cursor-pointer`} onClick={() => go('teammate', { playerId: p.id })}>
+                      <td className="py-1.5 font-mono text-stone-500">{p.number}</td>
+                      <td className={`font-medium ${me ? 'text-blue-700' : 'text-stone-900'}`}>{p.name}{me && <span className="ml-1 text-[10px] font-bold">YOU</span>}</td>
+                      <td className="text-right font-mono">{s.min}</td>
+                      <td className="text-right font-mono font-semibold">{s.pts}</td>
+                      <td className="text-right font-mono">{s.ast}</td>
+                      <td className="text-right font-mono">{s.reb}</td>
+                      <td className="text-right font-mono">{s.stl}</td>
+                      <td className="text-right font-mono">{s.blk}</td>
+                      <td className="text-right font-mono">{s.fgm}/{s.fga}</td>
+                      <td className="text-right font-mono">{s.tpm}/{s.tpa}</td>
+                      <td className="text-right font-mono">{s.ftm}/{s.fta}</td>
+                      <td className="text-right font-mono">{s.tov}</td>
+                      <td className="text-right font-mono">{s.pf}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {rot && (
+          <div className="bg-white border border-stone-200 rounded-xl p-5">
+            <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Rotation for this game</div>
+            <button onClick={() => go('rotations', { gameId: game.id })} className="text-[12px] text-blue-700 hover:underline">View full rotation →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ATTRIBUTES (ATTR-04) — full-page version (the My Profile page also embeds
+   a summary; this gives a dedicated history view).
+   ========================================================================= */
+function AttrsPage({ currentUser }) {
+  const attrs = useCollection('attributes', []);
+  const mine = attrs.items.find(a => a.playerId === currentUser.id);
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Physical attributes" subtitle="Recorded by your trainer."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        {!mine ? <div className="text-stone-500 text-[13px]">No attribute record yet.</div> : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+              <AttrTile label="Height" value={`${mine.heightCm} cm`}/>
+              <AttrTile label="Weight" value={`${mine.weightKg} kg`}/>
+              <AttrTile label="Body fat" value={`${mine.bodyFatPct}%`}/>
+              <AttrTile label="Wingspan" value={`${mine.wingspanCm} cm`}/>
+              <AttrTile label="Vertical" value={`${mine.verticalInches}"`}/>
+              <AttrTile label="40 yd" value={`${mine.fortyYdSec.toFixed(2)}s`}/>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">History</div>
+              <table className="w-full text-[12.5px]">
+                <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                  <th className="text-left font-semibold py-1">Date</th>
+                  <th className="text-right font-semibold">Height (cm)</th>
+                  <th className="text-right font-semibold">Weight (kg)</th>
+                  <th className="text-right font-semibold">Body fat %</th>
+                  <th className="text-right font-semibold">Vertical "</th>
+                </tr></thead>
+                <tbody>
+                  {(mine.history || []).map(h => (
+                    <tr key={h.date} className="border-t border-stone-50">
+                      <td className="py-1.5 font-mono text-stone-600">{h.date}</td>
+                      <td className="text-right font-mono">{h.heightCm}</td>
+                      <td className="text-right font-mono">{h.weightKg}</td>
+                      <td className="text-right font-mono">{h.bodyFatPct}</td>
+                      <td className="text-right font-mono">{h.verticalInches}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-3 text-[11px] text-stone-500">Last recorded {fmtRelative(mine.recordedAt)} by {mine.recordedBy}.</div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   PLAYS VIEWER (PLAY-15) — read-only with phase stepper
+   ========================================================================= */
+function PlaysPage() {
+  const { go } = useRouter();
+  const plays = useCollection('plays', SEED_PLAYS);
+  const [filter, setFilter] = useState('all'); // all / offense / defense
+  const [query, setQuery] = useState('');
+  const rows = plays.items
+    .filter(p => filter === 'all' || p.side === filter)
+    .filter(p => !query || p.name.toLowerCase().includes(query.toLowerCase()))
+    .sort((a,b) => (b.sharedAt||0) - (a.sharedAt||0));
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Plays" subtitle="Plays shared by your coach."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        {[
+          { id:'all', label:'All' },
+          { id:'offense', label:'Offense' },
+          { id:'defense', label:'Defense' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setFilter(t.id)}
+            className={`px-3 py-1.5 text-[12px] font-semibold rounded-md ${filter === t.id ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{t.label}</button>
+        ))}
+        <div className="relative flex-1 max-w-xs ml-auto">
+          <I.Search className="w-4 h-4 absolute left-2.5 top-2.5 text-stone-400"/>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search plays…"
+            className="w-full pl-8 pr-3 py-1.5 text-[12.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rows.map(p => (
+            <button key={p.id} onClick={() => go('playDetail', { playId: p.id })}
+              className="bg-white border border-stone-200 rounded-xl overflow-hidden text-left hover:shadow-sm hover:border-blue-200 transition">
+              <div className="aspect-[5/4] bg-stone-100 relative">
+                <CourtView positions={p.phases?.[0]?.positions || {}} drawings={p.phases?.[0]?.drawings || []} height={null}/>
+              </div>
+              <div className="p-3.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${p.side === 'offense' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{p.side}</span>
+                  <span className="text-[10.5px] text-stone-500">{p.category}</span>
+                </div>
+                <div className="font-display text-[14px] font-semibold text-stone-900 truncate">{p.name}</div>
+                <div className="text-[11.5px] text-stone-500 line-clamp-2 mt-1">{p.description}</div>
+                <div className="mt-2 text-[10.5px] text-stone-400">{p.phases?.length || 0} phase{p.phases?.length === 1 ? '' : 's'} • shared {fmtRelative(p.sharedAt)}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        {rows.length === 0 && <div className="text-center text-stone-500 py-8 text-[13px]">No plays match that filter.</div>}
+      </div>
+    </div>
+  );
+}
+
+function PlayDetailPage() {
+  const { params, go } = useRouter();
+  const plays = useCollection('plays', SEED_PLAYS);
+  const play = plays.items.find(p => p.id === params.playId);
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  if (!play) return <div className="flex-1 flex items-center justify-center text-stone-500">Play not found.</div>;
+  // Fallback shape: coach module may store `positions` + `drawings` at the top
+  // level with no `phases[]`. Synthesize a single-phase view in that case.
+  const phases = (play.phases && play.phases.length > 0)
+    ? play.phases
+    : [{ id:'ph-0', label:'Setup', positions: play.positions || {}, drawings: play.drawings || [] }];
+  const phase = phases[phaseIdx] || phases[0];
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={play.name}
+        subtitle={`${(play.side || 'offense') === 'offense' ? 'Offense' : 'Defense'} • ${play.category || 'Set Play'}${play.sharedBy ? ' • shared by ' + play.sharedBy : ''}`}
+        actions={<button onClick={() => go('plays')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>All plays</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          <div className="col-span-12 lg:col-span-8 bg-white border border-stone-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-display text-[14px] font-semibold text-stone-900">Phase {phaseIdx + 1}: {phase.label}</div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setPhaseIdx(i => Math.max(0, i - 1))} disabled={phaseIdx === 0}
+                  className="px-2 py-1 text-[12px] font-semibold border border-stone-300 rounded disabled:opacity-40 hover:bg-stone-50"><I.ChevronL className="w-4 h-4"/></button>
+                <button onClick={() => setPhaseIdx(i => Math.min(phases.length - 1, i + 1))} disabled={phaseIdx >= phases.length - 1}
+                  className="px-2 py-1 text-[12px] font-semibold border border-stone-300 rounded disabled:opacity-40 hover:bg-stone-50"><I.ChevronR className="w-4 h-4"/></button>
+              </div>
+            </div>
+            <CourtView positions={phase.positions} drawings={phase.drawings} height={460}/>
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {phases.map((ph, i) => (
+                <button key={ph.id || i} onClick={() => setPhaseIdx(i)}
+                  className={`px-3 py-1 text-[12px] rounded-full font-semibold ${i === phaseIdx ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+                  {i+1}. {ph.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="col-span-12 lg:col-span-4 space-y-4">
+            <div className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Description</div>
+              <p className="text-[12.5px] text-stone-700 leading-relaxed">{play.description}</p>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="font-display text-[13px] font-semibold text-stone-900 mb-2">Legend</div>
+              <div className="space-y-1.5 text-[12px]">
+                <Legend color="#0f172a" dash="6 4" label="Pass"/>
+                <Legend color="#0d9488" dash="2 3" label="Dribble"/>
+                <Legend color="#1e40af" dash="0" label="Cut / movement"/>
+                <Legend color="#dc2626" dash="0" label="Screen"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function Legend({ color, dash, label }) {
+  return (
+    <div className="flex items-center gap-2">
+      <svg width="36" height="8"><line x1="2" y1="4" x2="34" y2="4" stroke={color} strokeWidth="2.4" strokeDasharray={dash}/></svg>
+      <span className="text-stone-700">{label}</span>
+    </div>
+  );
+}
+
+/* =========================================================================
+   VIDEOS (VID-08) + VIDEO DETAIL (VID-09)
+   ========================================================================= */
+function VideosPage({ currentUser }) {
+  const { go } = useRouter();
+  const videos = useCollection('videos', SEED_VIDEOS);
+  const tagged = videos.items.filter(v => v.taggedPlayerIds?.includes(currentUser.id))
+    .sort((a,b) => (b.uploadedAt||0) - (a.uploadedAt||0));
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Videos" subtitle="Videos your coach tagged you in."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tagged.map(v => (
+            <button key={v.id} onClick={() => go('videoDetail', { videoId: v.id })}
+              className="bg-white border border-stone-200 rounded-xl overflow-hidden text-left hover:shadow-sm hover:border-blue-200 transition">
+              <div className="aspect-video bg-stone-900 relative flex items-center justify-center">
+                <I.Video className="w-10 h-10 text-stone-600"/>
+                <span className="absolute bottom-2 right-2 text-[11px] text-white bg-black/70 px-1.5 py-0.5 rounded font-mono">
+                  {Math.floor(v.durationSec/60)}:{String(Math.round(v.durationSec % 60)).padStart(2,'0')}
+                </span>
+                {v.has2DMap && <span className="absolute top-2 left-2 text-[10px] font-bold uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded">2D map</span>}
+              </div>
+              <div className="p-3.5">
+                <div className="font-display text-[14px] font-semibold text-stone-900 line-clamp-1">{v.title}</div>
+                <div className="text-[11.5px] text-stone-500 mt-1 line-clamp-2">{v.description}</div>
+                <div className="mt-2 text-[10.5px] text-stone-400">Uploaded {fmtRelative(v.uploadedAt)} by {v.uploadedBy}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        {tagged.length === 0 && (
+          <div className="text-center text-stone-500 py-12">
+            <I.Video className="w-10 h-10 mx-auto text-stone-300 mb-2"/>
+            <div className="text-[13px]">You haven’t been tagged in any videos yet.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VideoDetailPage({ currentUser, roster }) {
+  const { params, go } = useRouter();
+  const videos = useCollection('videos', SEED_VIDEOS);
+  const plays = useCollection('plays', SEED_PLAYS);
+  const video = videos.items.find(v => v.id === params.videoId);
+  const [kfIdx, setKfIdx] = useState(0);
+  if (!video) return <div className="flex-1 flex items-center justify-center text-stone-500">Video not found.</div>;
+  const isAllowed = video.taggedPlayerIds?.includes(currentUser.id);
+  if (!isAllowed) {
+    // RBAC fence — you can only view videos you are tagged in (VID-08).
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 max-w-md text-center">
+          <I.Shield className="w-8 h-8 mx-auto text-amber-700 mb-2"/>
+          <div className="font-semibold text-stone-900 mb-1">Access restricted</div>
+          <div className="text-[12.5px] text-stone-700">You aren’t tagged in this video. Only players tagged by the coach can view it.</div>
+          <button onClick={() => go('videos')} className="mt-3 px-3 py-1.5 text-[12px] font-semibold rounded-md bg-blue-600 text-white">Back to videos</button>
+        </div>
+      </div>
+    );
+  }
+  const linkedPlay = video.playId ? plays.items.find(p => p.id === video.playId) : null;
+  const kf = video.keyframes?.[kfIdx] || { players: {} };
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={video.title} subtitle={`${video.has2DMap ? "2D map available" : "No 2D map"} • ${video.keyframeCount} keyframes`}
+        actions={<button onClick={() => go('videos')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>All videos</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          <div className="col-span-12 lg:col-span-7 bg-white border border-stone-200 rounded-xl p-4">
+            <div className="aspect-video bg-stone-900 rounded-lg flex items-center justify-center mb-3 relative">
+              <I.Video className="w-12 h-12 text-stone-600"/>
+              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-white">
+                <span className="font-mono bg-black/60 px-1.5 py-0.5 rounded">{Math.floor((video.keyframes?.[kfIdx]?.time||0))}.0s / {video.durationSec.toFixed(1)}s</span>
+                <span className="font-mono bg-black/60 px-1.5 py-0.5 rounded">Keyframe {kfIdx+1}/{video.keyframes?.length||0}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setKfIdx(i => Math.max(0, i-1))} disabled={kfIdx === 0}
+                className="px-2 py-1 text-[12px] font-semibold border border-stone-300 rounded disabled:opacity-40 hover:bg-stone-50"><I.ChevronL className="w-4 h-4"/></button>
+              <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                {(video.keyframes || []).map((k, i) => (
+                  <button key={i} onClick={() => setKfIdx(i)}
+                    className={`px-2 py-1 text-[11px] rounded font-mono ${i === kfIdx ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+                    {k.time.toFixed(1)}s
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setKfIdx(i => Math.min((video.keyframes?.length||1)-1, i+1))} disabled={kfIdx >= (video.keyframes?.length||1)-1}
+                className="px-2 py-1 text-[12px] font-semibold border border-stone-300 rounded disabled:opacity-40 hover:bg-stone-50"><I.ChevronR className="w-4 h-4"/></button>
+            </div>
+          </div>
+          <div className="col-span-12 lg:col-span-5 bg-white border border-stone-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-display text-[14px] font-semibold text-stone-900">2D positional map</div>
+              <span className="text-[10.5px] text-stone-500 font-mono">t = {kf.time?.toFixed(1)}s</span>
+            </div>
+            <CourtView positions={kf.players} drawings={[]} height={360}/>
+          </div>
+          <div className="col-span-12 bg-white border border-stone-200 rounded-xl p-4">
+            <div className="font-display text-[14px] font-semibold text-stone-900 mb-1">Description</div>
+            <p className="text-[12.5px] text-stone-700 leading-relaxed">{video.description}</p>
+            <div className="mt-3 pt-3 border-t border-stone-100 flex flex-wrap items-center gap-2 text-[11.5px]">
+              <span className="text-stone-500 font-semibold uppercase text-[10.5px] tracking-wider">Tagged players:</span>
+              {video.taggedPlayerIds.map(pid => {
+                const p = roster.find(r => r.id === pid); if (!p) return null;
+                return <span key={pid} className={`px-2 py-0.5 rounded-full text-[11px] ${pid === currentUser.id ? 'bg-blue-600 text-white' : 'bg-stone-100 text-stone-700'}`}>#{p.number} {p.name}</span>;
+              })}
+            </div>
+            {linkedPlay && (
+              <div className="mt-3 pt-3 border-t border-stone-100">
+                <span className="text-[11px] text-stone-500">Linked play: </span>
+                <button onClick={() => go('playDetail', { playId: linkedPlay.id })} className="text-[12px] text-blue-700 font-semibold hover:underline">{linkedPlay.name} →</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ROTATIONS (ROT-04)
+   ========================================================================= */
+function RotationsPage({ currentUser, roster }) {
+  const { params, go } = useRouter();
+  const games = useCollection('games', SEED_GAMES);
+  const rotations = useCollection('rotations', SEED_ROTATIONS);
+  const upcoming = games.items.filter(g => g.status === 'scheduled').sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const [selectedId, setSelectedId] = useState(params?.gameId || upcoming[0]?.id || rotations.items[0]?.gameId);
+  useEffect(() => {
+    if (!selectedId && rotations.items.length > 0) setSelectedId(rotations.items[0].gameId);
+  }, [rotations.items, selectedId]);
+  const rot = rotations.items.find(r => r.gameId === selectedId);
+  const game = games.items.find(g => g.id === selectedId);
+  const mine = rot?.players?.find(p => p.playerId === currentUser.id);
+  const subFor = mine?.subFor ? roster.find(r => r.id === mine.subFor) : null;
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Rotations" subtitle="Your assigned minutes per game."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <select value={selectedId || ''} onChange={e => setSelectedId(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          {rotations.items.map(r => {
+            const g = games.items.find(gg => gg.id === r.gameId); if (!g) return null;
+            return <option key={r.gameId} value={r.gameId}>{g.date} • {g.homeAway === 'home' ? 'vs' : '@'} {g.opponent}</option>;
+          })}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        {!rot || !game ? <div className="text-stone-500 text-[13px]">No rotation set for the selected game.</div> : (
+          <div className="grid grid-cols-12 gap-5">
+            <div className="col-span-12 lg:col-span-4 bg-white border border-stone-200 rounded-xl p-5">
+              <div className="text-[11px] font-semibold text-stone-500 uppercase">Your assignment</div>
+              <div className="font-display text-[26px] font-bold text-stone-900 mt-1">{mine?.mins ?? '—'} <span className="text-stone-400 text-[14px] font-normal">min</span></div>
+              <div className="mt-2 text-[12.5px] text-stone-700">
+                Role: <span className={`font-semibold ${mine?.role === 'Starter' ? 'text-emerald-700' : 'text-blue-700'}`}>{mine?.role || '—'}</span>
+              </div>
+              {subFor && <div className="text-[12.5px] text-stone-700 mt-1">Sub for: <span className="font-semibold">#{subFor.number} {subFor.name}</span></div>}
+              {!mine && <div className="text-[12.5px] text-stone-500 mt-2">You are not in the rotation for this game.</div>}
+              {rot.notes && (
+                <div className="mt-4 pt-4 border-t border-stone-100">
+                  <div className="text-[10.5px] font-semibold text-stone-500 uppercase mb-1">Coach notes</div>
+                  <p className="text-[12.5px] text-stone-700 leading-relaxed">{rot.notes}</p>
+                </div>
+              )}
+            </div>
+            <div className="col-span-12 lg:col-span-8 bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Full rotation — {game.opponent}</div>
+              <table className="w-full text-[12.5px]">
+                <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                  <th className="text-left py-1 font-semibold">#</th>
+                  <th className="text-left font-semibold">Player</th>
+                  <th className="text-left font-semibold">Role</th>
+                  <th className="text-right font-semibold">MIN</th>
+                  <th className="text-left font-semibold pl-3">Sub for</th>
+                </tr></thead>
+                <tbody>
+                  {(rot.players || []).map(rp => {
+                    const p = roster.find(r => r.id === rp.playerId); if (!p) return null;
+                    const me = rp.playerId === currentUser.id;
+                    const sf = rp.subFor ? roster.find(r => r.id === rp.subFor) : null;
+                    return (
+                      <tr key={rp.playerId} className={`border-t border-stone-50 ${me ? 'bg-blue-50/50' : ''}`}>
+                        <td className="py-1.5 font-mono text-stone-500">{p.number}</td>
+                        <td className={me ? 'text-blue-700 font-semibold' : 'text-stone-800'}>{p.name}</td>
+                        <td><span className={`text-[10.5px] font-bold uppercase px-1.5 py-0.5 rounded ${rp.role === 'Starter' ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-700'}`}>{rp.role}</span></td>
+                        <td className="text-right font-mono font-semibold">{rp.mins}</td>
+                        <td className="pl-3 text-stone-600">{sf ? `#${sf.number} ${sf.name}` : '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   TRAINING SCHEDULE (TRN-06)
+   ========================================================================= */
+function TrainingPage() {
+  const training = useCollection('training', SEED_TRAINING);
+  const sorted = [...training.items].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const today = new Date().toISOString().slice(0,10);
+  const upcoming = sorted.filter(t => (t.date||'') >= today);
+  const past = sorted.filter(t => (t.date||'') < today).reverse();
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Training schedule" subtitle="Sessions scheduled by your coach and trainer."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Upcoming</div>
+        <div className="space-y-2 mb-6">
+          {upcoming.map(t => <TrainingCard key={t.id} t={t} upcoming/>)}
+          {upcoming.length === 0 && <div className="text-stone-500 text-[12.5px]">No upcoming sessions.</div>}
+        </div>
+        <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Past sessions</div>
+        <div className="space-y-2">
+          {past.map(t => <TrainingCard key={t.id} t={t}/>)}
+          {past.length === 0 && <div className="text-stone-500 text-[12.5px]">No past sessions.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+function TrainingCard({ t, upcoming }) {
+  return (
+    <div className={`bg-white border ${upcoming ? 'border-blue-200' : 'border-stone-200'} rounded-xl p-4 flex items-start gap-4`}>
+      <div className="text-center bg-stone-50 rounded-lg px-3 py-2 border border-stone-100 shrink-0 w-16">
+        <div className="text-[10px] font-semibold text-stone-500 uppercase">{new Date(t.date).toLocaleDateString(undefined, { month:'short' })}</div>
+        <div className="font-display text-xl font-bold text-stone-900">{new Date(t.date).getDate()}</div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="font-display text-[14px] font-semibold text-stone-900">{t.title}</div>
+          {upcoming && <span className="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Upcoming</span>}
+        </div>
+        <div className="text-[12.5px] text-stone-600 mt-0.5">
+          {t.startTime}–{t.endTime} • <span className="font-medium text-stone-700">{t.location}</span> • by {t.createdBy}
+        </div>
+        {t.objectives && <div className="text-[12.5px] text-stone-700 mt-2 leading-relaxed">{t.objectives}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   WORKOUTS (WRK-08)
+   ========================================================================= */
+function WorkoutsPage({ currentUser }) {
+  const workouts = useCollection('workouts', []);
+  const mine = workouts.items.filter(w => w.playerId === currentUser.id).sort((a,b) => (b.assignedAt||0) - (a.assignedAt||0));
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Workouts" subtitle="Workout plans assigned to you."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        {mine.length === 0 && <div className="text-stone-500 text-[13px]">No workouts assigned to you yet.</div>}
+        <div className="space-y-4">
+          {mine.map(w => (
+            <div key={w.id} className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-display text-[15px] font-semibold text-stone-900">{w.title}</div>
+                  <div className="text-[12px] text-stone-500 mt-0.5">{w.focus} • by {w.assignedBy} • {fmtRelative(w.assignedAt)}</div>
+                </div>
+                <span className="text-[10.5px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">Active</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {w.blocks.map((b, i) => (
+                  <div key={i} className="border border-stone-100 rounded-lg overflow-hidden">
+                    <div className="bg-stone-50 px-3 py-1.5 text-[12px] font-semibold text-stone-700">{b.name}</div>
+                    <table className="w-full text-[12.5px]">
+                      <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                        <th className="text-left py-1 px-3 font-semibold">Exercise</th>
+                        <th className="text-right font-semibold">Sets</th>
+                        <th className="text-right font-semibold px-3">Reps / time</th>
+                      </tr></thead>
+                      <tbody>
+                        {b.exercises.map((ex, j) => (
+                          <tr key={j} className="border-t border-stone-50">
+                            <td className="py-1.5 px-3 text-stone-800">{ex.name}</td>
+                            <td className="text-right font-mono">{ex.sets}</td>
+                            <td className="text-right font-mono px-3">{ex.reps}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   DIET (WRK-09)
+   ========================================================================= */
+function DietPage({ currentUser }) {
+  const diets = useCollection('dietPlans', []);
+  const mine = diets.items.filter(d => d.playerId === currentUser.id).sort((a,b) => (b.assignedAt||0) - (a.assignedAt||0));
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Diet plan" subtitle="Dietary plans assigned to you."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        {mine.length === 0 && <div className="text-stone-500 text-[13px]">No dietary plan assigned. Check with your trainer.</div>}
+        <div className="space-y-5">
+          {mine.map(d => (
+            <div key={d.id} className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <div className="font-display text-[15px] font-semibold text-stone-900">{d.title}</div>
+                  <div className="text-[12px] text-stone-500 mt-0.5">by {d.assignedBy} • {fmtRelative(d.assignedAt)}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                <AttrTile label="kcal/day"  value={d.kcal}/>
+                <AttrTile label="Protein"   value={`${d.protein} g`}/>
+                <AttrTile label="Carbs"     value={`${d.carbs} g`}/>
+                <AttrTile label="Fat"       value={`${d.fat} g`}/>
+              </div>
+              {d.notes && <p className="text-[12.5px] text-stone-700 mb-3 leading-relaxed bg-blue-50/50 border-l-2 border-blue-400 px-3 py-2">{d.notes}</p>}
+              <div className="border border-stone-100 rounded-lg overflow-hidden">
+                <table className="w-full text-[12.5px]">
+                  <thead><tr className="bg-stone-50 text-stone-500 text-[10px] uppercase">
+                    <th className="text-left py-1.5 px-3 font-semibold">Time</th>
+                    <th className="text-left font-semibold">Meal</th>
+                    <th className="text-left font-semibold px-3">Items</th>
+                  </tr></thead>
+                  <tbody>
+                    {d.meals.map((m, i) => (
+                      <tr key={i} className="border-t border-stone-100">
+                        <td className="py-1.5 px-3 font-mono text-stone-600">{m.time}</td>
+                        <td className="font-semibold text-stone-800">{m.name}</td>
+                        <td className="text-stone-700 px-3">{m.items}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   MESSAGES (MSG-06..11) — inbox, threads, compose
+   ========================================================================= */
+function MessagesPage({ currentUser, roster }) {
+  const { params, go } = useRouter();
+  const messages = useCollection('messages', SEED_MESSAGES);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [activeId, setActiveId] = useState(params?.messageId || null);
+
+  // Filter inbox: I receive team announcements + DMs to me. Also include
+  // DMs *from* me (sent items combined into the same list).
+  const inbox = useMemo(() => {
+    const list = messages.items.filter(m => {
+      if (m.from?.userId === currentUser.id) return false; // sent — separate
+      return m.to?.scope === 'team' || (m.to?.scope === 'player' && m.to?.playerId === currentUser.id);
+    });
+    return list.sort((a,b) => (b.sentAt||0) - (a.sentAt||0));
+  }, [messages.items, currentUser.id]);
+
+  const sent = useMemo(() =>
+    messages.items.filter(m => m.from?.userId === currentUser.id).sort((a,b) => (b.sentAt||0) - (a.sentAt||0)),
+    [messages.items, currentUser.id]
+  );
+
+  const [tab, setTab] = useState('inbox');
+  const active = inbox.concat(sent).find(m => m.id === activeId) || inbox[0];
+
+  // Mark as read on open
+  useEffect(() => {
+    if (active && active.from?.userId !== currentUser.id) {
+      if (!(active.readBy && active.readBy[currentUser.id])) {
+        const next = { ...active, readBy: { ...(active.readBy||{}), [currentUser.id]: Date.now() } };
+        messages.save(next);
+      }
+    }
+  }, [active?.id]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Messages" subtitle="Your messages."
+        actions={
+          <button onClick={() => setComposeOpen(true)} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 btn-press flex items-center gap-1.5">
+            <I.Plus className="w-4 h-4"/> Compose
+          </button>
+        }/>
+      <div className="flex-1 overflow-hidden flex">
+        {/* List */}
+        <div className="w-80 border-r border-stone-200 flex flex-col bg-white">
+          <div className="flex border-b border-stone-200">
+            {[['inbox','Inbox'],['sent','Sent']].map(([id,label]) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex-1 py-2.5 text-[12.5px] font-semibold ${tab === id ? 'text-blue-700 border-b-2 border-blue-600' : 'text-stone-500 border-b-2 border-transparent hover:text-stone-800'}`}>
+                {label} {id === 'inbox' && inbox.filter(m => !(m.readBy && m.readBy[currentUser.id])).length > 0 && (
+                  <span className="ml-1 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold inline-flex items-center justify-center">
+                    {inbox.filter(m => !(m.readBy && m.readBy[currentUser.id])).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {(tab === 'inbox' ? inbox : sent).map(m => {
+              const isUnread = tab === 'inbox' && !(m.readBy && m.readBy[currentUser.id]);
+              return (
+                <button key={m.id} onClick={() => setActiveId(m.id)}
+                  className={`w-full text-left px-4 py-2.5 border-b border-stone-100 hover:bg-stone-50 ${active?.id === m.id ? 'bg-blue-50/60' : ''}`}>
+                  <div className="flex items-start gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${isUnread ? 'bg-blue-500' : 'bg-transparent'}`}/>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className={`text-[12.5px] truncate ${isUnread ? 'font-semibold text-stone-900' : 'font-medium text-stone-700'}`}>
+                          {tab === 'inbox' ? m.from?.name : (m.to?.scope === 'team' ? 'Team announcement' : roster.find(r => r.id === m.to?.playerId)?.name || 'Direct')}
+                        </span>
+                        <span className="text-[10.5px] text-stone-400 shrink-0">{fmtRelative(m.sentAt)}</span>
+                      </div>
+                      <div className={`text-[12px] truncate ${isUnread ? 'text-stone-800 font-medium' : 'text-stone-600'}`}>{m.subject}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {(tab === 'inbox' ? inbox : sent).length === 0 && <div className="text-center text-stone-500 py-8 text-[12.5px]">No messages.</div>}
+          </div>
+        </div>
+        {/* Detail */}
+        <div className="flex-1 overflow-y-auto bg-stone-50/50 p-7">
+          {active ? (
+            <div className="max-w-2xl mx-auto bg-white border border-stone-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-700">
+                  {active.kind === 'announcement' ? 'Team announcement' : 'Direct'}
+                </span>
+                <span className="text-[11.5px] text-stone-500">{new Date(active.sentAt).toLocaleString()}</span>
+              </div>
+              <h2 className="font-display text-xl font-bold text-stone-900 mt-2">{active.subject}</h2>
+              <div className="mt-1 text-[12.5px] text-stone-600">
+                From <span className="font-semibold">{active.from?.name}</span> ({active.from?.role})
+                {active.to?.scope === 'player' && active.to?.playerId !== currentUser.id && (
+                  <> • To {roster.find(r => r.id === active.to.playerId)?.name}</>
+                )}
+              </div>
+              <p className="text-[14px] text-stone-800 mt-4 whitespace-pre-wrap leading-relaxed">{active.body}</p>
+            </div>
+          ) : (
+            <div className="text-center text-stone-500 py-12 text-[13px]">Select a message to read.</div>
+          )}
+        </div>
+      </div>
+      <ComposeModal open={composeOpen} onClose={() => setComposeOpen(false)} currentUser={currentUser} roster={roster}
+        onSend={async (msg) => { await messages.save(msg); setComposeOpen(false); setActiveId(msg.id); setTab('sent'); }}/>
+    </div>
+  );
+}
+
+function ComposeModal({ open, onClose, currentUser, roster, onSend }) {
+  const [recipient, setRecipient] = useState('coach');
+  const [teammateId, setTeammateId] = useState('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  useEffect(() => { if (open) { setRecipient('coach'); setTeammateId(''); setSubject(''); setBody(''); } }, [open]);
+
+  const can = subject.trim() && body.trim() && (recipient !== 'teammate' || teammateId);
+
+  const send = () => {
+    let to;
+    if (recipient === 'coach') to = { scope:'role', role:'coach' };
+    else if (recipient === 'trainer') to = { scope:'role', role:'trainer' };
+    else to = { scope:'player', playerId: teammateId };
+    const msg = {
+      id: newId('msg'),
+      from: { role:'player', name: currentUser.name, userId: currentUser.id },
+      to, kind:'direct', subject, body,
+      sentAt: Date.now(), readBy: {}, threadId: newId('th'),
+    };
+    onSend(msg);
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="New message" subtitle="Send a message to your coach, trainer, or a teammate." size="lg"
+      footer={<>
+        <button onClick={onClose} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button disabled={!can} onClick={send}
+          className="px-3.5 py-2 text-[13px] font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-stone-300 btn-press flex items-center gap-1.5">
+          <I.Send className="w-4 h-4"/> Send
+        </button>
+      </>}>
+      <SelectField label="Recipient" value={recipient} onChange={setRecipient}
+        options={[
+          { value:'coach', label:'Coach' },
+          { value:'trainer', label:'Trainer' },
+          { value:'teammate', label:'Teammate' },
+        ]}/>
+      {recipient === 'teammate' && (
+        <SelectField label="Teammate" value={teammateId} onChange={setTeammateId}
+          options={[{ value:'', label:'— select teammate —' }, ...roster.filter(r => r.id !== currentUser.id).map(r => ({ value: r.id, label: `#${r.number} ${r.name}` }))]}/>
+      )}
+      <TextField label="Subject" value={subject} onChange={setSubject} required/>
+      <TextArea label="Message" value={body} onChange={setBody} rows={6}/>
+    </Modal>
+  );
+}
+
+/* =========================================================================
+   ROUTES — wired after all page components are defined.
+   ========================================================================= */
+ROUTES = {
+  dashboard:    { component: DashboardPage,        sidebar:'dashboard' },
+  me:           { component: MyProfilePage,        sidebar:'me' },
+  team:         { component: TeammatesPage,        sidebar:'team' },
+  teammate:     { component: TeammateDetailPage,   sidebar:'team' },
+  myStats:      { component: MyStatsPage,          sidebar:'myStats' },
+  teamStats:    { component: TeamStatsPage,        sidebar:'teamStats' },
+  games:        { component: GamesPage,            sidebar:'games' },
+  gameDetail:   { component: GameDetailPage,       sidebar:'games' },
+  attrs:        { component: AttrsPage,            sidebar:'attrs' },
+  plays:        { component: PlaysPage,            sidebar:'plays' },
+  playDetail:   { component: PlayDetailPage,       sidebar:'plays' },
+  videos:       { component: VideosPage,           sidebar:'videos' },
+  videoDetail:  { component: VideoDetailPage,      sidebar:'videos' },
+  rotations:    { component: RotationsPage,        sidebar:'rotations' },
+  training:     { component: TrainingPage,         sidebar:'training' },
+  workouts:     { component: WorkoutsPage,         sidebar:'workouts' },
+  diet:         { component: DietPage,             sidebar:'diet' },
+  messages:     { component: MessagesPage,         sidebar:'messages' },
+};
+
+/* =========================================================================
+   ROOT
+   ========================================================================= */
+function App() {
+
+  const roster = useCollection('roster', SEED_ROSTER);
+  const [role, , roleLoaded] = useStored('currentUser:role', null);
+  const [currentUserId] = useStored('currentUser:playerId', null);
+  const [collapsed, setCollapsed] = useStored('ui:sidebarCollapsed', false);
+  const [routeState, setRouteState] = useState({ route: 'dashboard', params: {} });
+  const messages = useCollection('messages', SEED_MESSAGES);
+
+  if (!roster.loaded || !roleLoaded) {
+    return <div className="h-full flex items-center justify-center text-stone-500 text-[13px]">Loading…</div>;
+  }
+
+  // AUTH-02 role gate: identity comes from login.html.
+  if (role !== 'player' || !currentUserId) {
+    return <RoleGateScreen role={role}/>;
+  }
+  const currentUser = roster.items.find(r => r.id === currentUserId);
+  if (!currentUser) return <RoleGateScreen role={role}/>;
+
+  // Unread count for the logged-in player.
+  const unreadCount = messages.items.filter(m => {
+    if (!m) return false;
+    if (m.from?.userId === currentUser.id) return false;
+    const isMine = (m.to?.scope === 'team') || (m.to?.scope === 'player' && m.to?.playerId === currentUser.id);
+    if (!isMine) return false;
+    return !(m.readBy && m.readBy[currentUser.id]);
+  }).length;
+
+  const go = (route, params = {}) => setRouteState({ route, params });
+  const PageComp = ROUTES[routeState.route]?.component || NotFoundPage;
+
+  const signOut = async () => {
+    if (window.cs_auth) await window.cs_auth.logout();
+    else {
+      await Storage.delete('currentUser:role');
+      await Storage.delete('currentUser:name');
+      await Storage.delete('currentUser:playerId');
+    }
+    window.location.href = 'login.html';
+  };
+
+  return (
+    <RouterCtx.Provider value={{ route: routeState.route, params: routeState.params, go }}>
+      <div className="h-full flex">
+        <Sidebar
+          active={routeState.route}
+          onSelect={(id) => go(id)}
+          collapsed={collapsed}
+          onToggleCollapse={() => setCollapsed(c => !c)}
+          unreadCount={unreadCount}
+          currentUser={currentUser}
+          onLogout={signOut}
+        />
+        <main className="flex-1 h-full overflow-hidden flex flex-col canvas-bg">
+          <PageComp currentUser={currentUser} roster={roster.items}/>
+        </main>
+      </div>
+    </RouterCtx.Provider>
+  );
+}
+
+function NotFoundPage() {
+  const { go } = useRouter();
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-stone-500 mb-2">Route not found.</div>
+        <button onClick={() => go('dashboard')} className="text-blue-700 underline text-[13px]">Back to dashboard</button>
+      </div>
+    </div>
+  );
+}
+
+
+/* ============================================================
+   Root wrapper — performs the active session check BEFORE App
+   mounts, so React never sees hook-count mismatches between an
+   early return and the post-verification render.
+   ============================================================ */
+function Root() {
+  const [__sessionChecked, __setSessionChecked] = useState(false);
+  const [__sessionUser, __setSessionUser] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (window.cs_auth) {
+        const u = await window.cs_auth.requireSession('player');
+        if (cancelled) return;
+        __setSessionUser(u);
+      } else {
+        __setSessionUser({ role: 'player' });
+      }
+      if (!cancelled) __setSessionChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  if (!__sessionChecked) {
+    return (
+      <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8f6f3', color:'#78716c', fontSize:'13px', fontFamily:"'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        Verifying session…
+      </div>
+    );
+  }
+  if (!__sessionUser) return null;
+  return <App/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>
