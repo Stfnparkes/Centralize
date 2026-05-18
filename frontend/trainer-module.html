@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centralize — Trainers Module | Sports Performance Management</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  :root {
+    --bg-base: #f8f6f3;
+    --accent: #b45309;          /* trainer amber (coach=teal, player=blue) */
+    --accent-hover: #92400e;
+    --accent-soft: #fef3c7;
+  }
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body, #root { height: 100%; margin: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg-base); color: #0c0a09; overflow: hidden; }
+  .font-display { font-family: 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -0.01em; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .canvas-bg { background-image: radial-gradient(circle at 25% 15%, rgba(180, 83, 9, 0.05) 0%, transparent 35%), linear-gradient(180deg, #f8f6f3 0%, #f3efe9 100%); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 4px; }
+  .btn-press:active { transform: translateY(1px) scale(0.98); }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="runtime.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo, useCallback, Fragment, createContext, useContext } = React;
+
+/* =========================================================================
+   ICONS
+   ========================================================================= */
+const Ic = (path) => ({ className = 'w-5 h-5', ...rest }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>{path}</svg>
+);
+const I = {
+  Home:     Ic(<><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></>),
+  Users:    Ic(<><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M22 19c0-2.5-2-4.5-5-4.5"/></>),
+  User:     Ic(<><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></>),
+  Ruler:    Ic(<><rect x="3" y="9" width="18" height="6" rx="1"/><path d="M7 9v3M11 9v3M15 9v3M19 9v3"/></>),
+  Dumb:     Ic(<><path d="M3 12h2M19 12h2M7 7v10M11 5v14M13 5v14M17 7v10"/></>),
+  Library:  Ic(<><path d="M4 19V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v14M10 19V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12M16 19l3-13 1.5.3-3 13z"/></>),
+  Clipboard:Ic(<><rect x="6" y="4" width="12" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 11h6M9 15h6"/></>),
+  Apple:    Ic(<><path d="M12 7c-1-2-3-3-5-2-2 1-3 4-2 7s4 8 7 8 6-5 7-8-0-6-2-7c-2-1-4 0-5 2z"/><path d="M12 7c0-2 1-4 3-4"/></>),
+  Bandage:  Ic(<><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-30 12 12)"/><circle cx="10" cy="12" r="0.8"/><circle cx="14" cy="12" r="0.8"/><circle cx="12" cy="10" r="0.8"/><circle cx="12" cy="14" r="0.8"/></>),
+  Mail:     Ic(<><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 7 9-7"/></>),
+  Send:     Ic(<><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></>),
+  Search:   Ic(<><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></>),
+  Plus:     Ic(<><path d="M12 5v14M5 12h14"/></>),
+  Edit:     Ic(<><path d="M4 20h4l11-11-4-4L4 16z"/><path d="m13 6 4 4"/></>),
+  Trash:    Ic(<><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></>),
+  Close:    Ic(<><path d="M6 6l12 12M18 6 6 18"/></>),
+  Check:    Ic(<><path d="m4 12 5 5L20 6"/></>),
+  Logout:   Ic(<><path d="M9 5H5v14h4"/><path d="m15 8 4 4-4 4"/><path d="M19 12H9"/></>),
+  ChevronR: Ic(<><path d="m9 6 6 6-6 6"/></>),
+  ChevronL: Ic(<><path d="m15 6-6 6 6 6"/></>),
+  Filter:   Ic(<><path d="M3 5h18l-7 9v6l-4-2v-4L3 5z"/></>),
+  Bolt:     Ic(<><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></>),
+  Calendar: Ic(<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></>),
+  Stopwatch:Ic(<><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6M12 5V3"/></>),
+  Heart:    Ic(<><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></>),
+  Bell:     Ic(<><path d="M6 8a6 6 0 0 1 12 0v5l2 3H4l2-3V8z"/><path d="M10 19a2 2 0 0 0 4 0"/></>),
+};
+
+/* =========================================================================
+   CANONICAL SEEDS — shared across all modules (login + player + coach + trainer).
+   Roster, games, profiles aligned with player + coach modules.
+   ========================================================================= */
+const SEED_ROSTER = [
+  { id:'pl-1',  number:4,  name:'M. Anderson', position:'PG' },
+  { id:'pl-2',  number:7,  name:'D. Wilson',   position:'SG' },
+  { id:'pl-3',  number:23, name:'J. Carter',   position:'SF' },
+  { id:'pl-4',  number:32, name:'K. Brown',    position:'PF' },
+  { id:'pl-5',  number:55, name:'L. Mitchell', position:'C'  },
+  { id:'pl-6',  number:1,  name:'A. Thompson', position:'PG' },
+  { id:'pl-7',  number:11, name:'R. Davis',    position:'SG' },
+  { id:'pl-8',  number:21, name:'C. Martinez', position:'SF' },
+  { id:'pl-9',  number:34, name:'B. White',    position:'PF' },
+  { id:'pl-10', number:42, name:'T. Hall',     position:'C'  },
+];
+
+const TRAINER = { id:'trainer-1', name:'Trainer S. Wells', role:'trainer' };
+const COACH   = { id:'coach-1',   name:'Coach R. Patterson', role:'coach'   };
+
+// ATTRIBUTES — trainer-authored (ATTR-01..03)
+const SEED_ATTRIBUTES = SEED_ROSTER.map((p, idx) => {
+  const baseHeight = 178 + idx * 2;
+  const baseWeight = 78 + idx;
+  return {
+    id: `at-${p.id}`,
+    playerId: p.id,
+    recordedAt: Date.now() - 86400000 * (3 + idx),
+    recordedBy: TRAINER.name,
+    heightCm: baseHeight,
+    weightKg: baseWeight,
+    bodyFatPct: 8 + (idx % 5),
+    wingspanCm: baseHeight + 7 + (idx % 4),
+    verticalInches: 28 + (idx % 7),
+    fortyYdSec: Math.round((4.85 - (idx % 4) * 0.05) * 100) / 100,
+    benchMax: 145 + idx * 8,
+    squatMax: 215 + idx * 10,
+    history: [
+      { date:'2026-02-01', heightCm: baseHeight, weightKg: baseWeight - 2, bodyFatPct: 9 + (idx % 4), verticalInches: 27 + (idx % 6), recordedBy: TRAINER.name },
+      { date:'2026-04-01', heightCm: baseHeight, weightKg: baseWeight - 1, bodyFatPct: 8 + (idx % 5), verticalInches: 27 + (idx % 7), recordedBy: TRAINER.name },
+    ],
+  };
+});
+
+// EXERCISE LIBRARY (WRK-01, WRK-02). 20 representative exercises.
+const SEED_EXERCISES = [
+  { id:'ex-bs',   name:'Back Squat',           category:'Strength',   muscleGroups:['Quads','Glutes'],     equipment:'Barbell',    difficulty:'Intermediate', desc:'Compound lower-body strength.' },
+  { id:'ex-fs',   name:'Front Squat',          category:'Strength',   muscleGroups:['Quads'],              equipment:'Barbell',    difficulty:'Intermediate', desc:'Anterior-loaded squat — quad-dominant.' },
+  { id:'ex-rdl',  name:'Romanian Deadlift',    category:'Strength',   muscleGroups:['Hamstrings','Glutes'],equipment:'Barbell',    difficulty:'Intermediate', desc:'Hip-hinge hamstring builder.' },
+  { id:'ex-pp',   name:'Push Press',           category:'Strength',   muscleGroups:['Shoulders','Triceps'],equipment:'Barbell',    difficulty:'Intermediate', desc:'Explosive overhead press with leg drive.' },
+  { id:'ex-bp',   name:'Bench Press',          category:'Strength',   muscleGroups:['Chest','Triceps'],    equipment:'Barbell',    difficulty:'Intermediate', desc:'Horizontal pressing strength.' },
+  { id:'ex-pu',   name:'Pull-Up',              category:'Strength',   muscleGroups:['Lats','Biceps'],      equipment:'Bar',        difficulty:'Intermediate', desc:'Vertical pulling, full ROM.' },
+  { id:'ex-bj',   name:'Box Jump',             category:'Plyometric', muscleGroups:['Quads','Calves'],     equipment:'Plyo Box',   difficulty:'Beginner',     desc:'Vertical jump development.' },
+  { id:'ex-dj',   name:'Depth Jump',           category:'Plyometric', muscleGroups:['Quads','Calves'],     equipment:'Plyo Box',   difficulty:'Advanced',     desc:'Reactive strength — depth + immediate jump.' },
+  { id:'ex-bdj',  name:'Broad Jump',           category:'Plyometric', muscleGroups:['Glutes','Hamstrings'],equipment:'None',       difficulty:'Beginner',     desc:'Horizontal power.' },
+  { id:'ex-mb',   name:'Med-Ball Slam',        category:'Plyometric', muscleGroups:['Core','Lats'],        equipment:'Medicine Ball',difficulty:'Beginner',   desc:'Total-body power.' },
+  { id:'ex-17',   name:'17s — Sideline to Sideline',category:'Conditioning',muscleGroups:['Full body'],   equipment:'None',       difficulty:'Intermediate', desc:'Court sprint conditioning — sub-65s target.' },
+  { id:'ex-suic', name:'Suicides',             category:'Conditioning',muscleGroups:['Full body'],        equipment:'None',       difficulty:'Intermediate', desc:'Free-throw / half / opposite FT / baseline.' },
+  { id:'ex-trd',  name:'Treadmill Tempo Run',  category:'Conditioning',muscleGroups:['Full body'],        equipment:'Treadmill',  difficulty:'Beginner',     desc:'Aerobic base — 75% HR max.' },
+  { id:'ex-9090', name:'Hip 90/90',            category:'Mobility',    muscleGroups:['Hips'],             equipment:'None',       difficulty:'Beginner',     desc:'Internal + external hip rotation drill.' },
+  { id:'ex-tspn', name:'Thoracic Spine Rotations',category:'Mobility', muscleGroups:['T-Spine'],          equipment:'None',       difficulty:'Beginner',     desc:'Quadruped open-book.' },
+  { id:'ex-fr',   name:'Foam Roll — Lower Body',category:'Recovery',   muscleGroups:['Full body'],        equipment:'Foam Roller',difficulty:'Beginner',     desc:'Soft tissue work — 5 min total.' },
+  { id:'ex-mik',  name:'Mikan Drill',          category:'Skill',       muscleGroups:['Coordination'],     equipment:'Basketball', difficulty:'Beginner',     desc:'Right/left finishes at the rim, continuous.' },
+  { id:'ex-fwk', name:'Defensive Slides',     category:'Skill',       muscleGroups:['Legs','Core'],      equipment:'None',       difficulty:'Beginner',     desc:'Lateral defensive footwork.' },
+  { id:'ex-pln',  name:'Plank (Front)',        category:'Core',        muscleGroups:['Core'],             equipment:'None',       difficulty:'Beginner',     desc:'Isometric core hold.' },
+  { id:'ex-pall', name:'Pallof Press',         category:'Core',        muscleGroups:['Core','Obliques'],  equipment:'Cable',      difficulty:'Intermediate', desc:'Anti-rotation core.' },
+];
+const EXERCISE_CATEGORIES = ['Strength','Plyometric','Conditioning','Mobility','Recovery','Skill','Core'];
+
+// WORKOUTS (WRK-03/04/05). Pre-assigned by trainer for several athletes.
+const SEED_WORKOUTS = [
+  { id:'wo-pl-1', playerId:'pl-1', title:'Guard Conditioning A', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 3, focus:'Conditioning + ball-handling', status:'active',
+    blocks:[
+      { name:'Warm-up', exercises:[{ exId:'ex-9090', sets:1, reps:'5 min' }, { exId:'ex-trd', sets:1, reps:'400m' }] },
+      { name:'Strength', exercises:[{ exId:'ex-bs', sets:4, reps:'6' }, { exId:'ex-rdl', sets:3, reps:'8' }, { exId:'ex-pu', sets:3, reps:'AMRAP' }] },
+      { name:'Court', exercises:[{ exId:'ex-mik', sets:6, reps:'30s' }, { exId:'ex-17', sets:3, reps:'<65s' }] },
+    ],
+  },
+  { id:'wo-pl-2', playerId:'pl-2', title:'Wing Power + C&S', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 4, focus:'Lower-body power + spot-up', status:'active',
+    blocks:[
+      { name:'Power', exercises:[{ exId:'ex-bj', sets:4, reps:'5' }, { exId:'ex-rdl', sets:4, reps:'5' }, { exId:'ex-mb', sets:3, reps:'8' }] },
+      { name:'Court', exercises:[{ exId:'ex-fwk', sets:3, reps:'30s' }] },
+    ],
+  },
+  { id:'wo-pl-3', playerId:'pl-3', title:'Two-Way Wing', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 2, focus:'Lateral quickness + finishing', status:'active',
+    blocks:[
+      { name:'Conditioning', exercises:[{ exId:'ex-17', sets:3, reps:'<65s' }, { exId:'ex-suic', sets:2, reps:'<35s' }] },
+      { name:'Skill', exercises:[{ exId:'ex-mik', sets:3, reps:'20' }, { exId:'ex-fwk', sets:5, reps:'10' }] },
+    ],
+  },
+  { id:'wo-pl-4', playerId:'pl-4', title:'Captain Maintenance', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 1, focus:'Recovery + posting', status:'active',
+    blocks:[
+      { name:'Mobility', exercises:[{ exId:'ex-9090', sets:1, reps:'8 min' }, { exId:'ex-tspn', sets:1, reps:'8 min' }] },
+      { name:'Recovery', exercises:[{ exId:'ex-fr', sets:1, reps:'10 min' }] },
+    ],
+  },
+  { id:'wo-pl-5', playerId:'pl-5', title:'Big Block + Roll', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 5, focus:'Roll-to-rim speed', status:'active',
+    blocks:[
+      { name:'Strength', exercises:[{ exId:'ex-fs', sets:4, reps:'6' }, { exId:'ex-pp', sets:4, reps:'5' }] },
+      { name:'Court', exercises:[{ exId:'ex-mik', sets:6, reps:'10' }] },
+    ],
+  },
+];
+
+// DIETARY PLANS (WRK-06/07). A couple pre-assigned.
+const SEED_DIET = [
+  { id:'dt-pl-1', playerId:'pl-1', title:'Guard Fuel — In Season', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 6, status:'active',
+    kcal:3000, protein:180, carbs:380, fat:90,
+    notes:'Carb-forward on practice days. Pre-game oatmeal + banana 3h prior. Hydration 4L/day.',
+    meals:[
+      { time:'07:00', name:'Breakfast', items:'Oats + berries + 3 eggs + toast' },
+      { time:'12:30', name:'Lunch',     items:'Chicken rice bowl + side salad' },
+      { time:'15:30', name:'Pre-prac',  items:'Banana + PB toast' },
+      { time:'19:00', name:'Dinner',    items:'Salmon + sweet potato + greens' },
+      { time:'21:30', name:'Recovery',  items:'Cottage cheese + honey' },
+    ],
+  },
+  { id:'dt-pl-5', playerId:'pl-5', title:'Big Man — Mass Maintain', assignedBy: TRAINER.name, assignedAt: Date.now() - 86400000 * 8, status:'active',
+    kcal:3800, protein:220, carbs:430, fat:120,
+    notes:'High-protein. Hydration target 5L/day in season.',
+    meals:[
+      { time:'07:00', name:'Breakfast', items:'4 eggs + oats + protein shake' },
+      { time:'12:30', name:'Lunch',     items:'Steak + rice + roasted veg' },
+      { time:'16:00', name:'Snack',     items:'Greek yogurt + granola' },
+      { time:'19:30', name:'Dinner',    items:'Chicken + pasta + olive oil' },
+      { time:'22:00', name:'Recovery',  items:'Casein + almond butter' },
+    ],
+  },
+];
+
+// INJURY REPORTS (INJ-01..03)
+const SEED_INJURIES = [
+  { id:'inj-1', playerId:'pl-3', title:'Left ankle sprain — Grade I', occurredAt:'2026-04-22', reportedBy: TRAINER.name, reportedAt: Date.now() - 86400000 * 16,
+    severity:'Mild', mechanism:'Stepped on opponent foot, mid-game vs Knights.',
+    bodyPart:'Left ankle', status:'recovered',
+    treatment:'RICE 48h; band mobility days 3–7; return-to-play protocol days 7–10.',
+    timeline:[
+      { date:'2026-04-22', note:'Injury occurred. ER ruled out fracture. Grade I sprain.' },
+      { date:'2026-04-25', note:'Swelling down. Beginning bandit walks + isometrics.' },
+      { date:'2026-04-30', note:'Cleared for non-contact court work.' },
+      { date:'2026-05-03', note:'Cleared for full contact. Returned vs Eagles.' },
+    ],
+  },
+  { id:'inj-2', playerId:'pl-9', title:'Right shoulder impingement', occurredAt:'2026-05-10', reportedBy: TRAINER.name, reportedAt: Date.now() - 86400000 * 7,
+    severity:'Moderate', mechanism:'Overuse — high volume shooting reps.',
+    bodyPart:'Right shoulder', status:'active',
+    treatment:'PT 3x/week. No overhead pressing for 2 weeks. Modified shooting reps capped at 75/session.',
+    timeline:[
+      { date:'2026-05-10', note:'Pain reported after practice. Imaging clean.' },
+      { date:'2026-05-12', note:'Started physical therapy. Cuban presses + scap stability.' },
+      { date:'2026-05-15', note:'Volume restriction lifted partially — cleared for 50% shooting volume.' },
+    ],
+  },
+  { id:'inj-3', playerId:'pl-7', title:'Left hamstring tightness', occurredAt:'2026-05-13', reportedBy: TRAINER.name, reportedAt: Date.now() - 86400000 * 4,
+    severity:'Mild', mechanism:'Acceleration during conditioning.',
+    bodyPart:'Left hamstring', status:'monitoring',
+    treatment:'Daily soft tissue + eccentric hamstring work. No sprinting for 4 days.',
+    timeline:[
+      { date:'2026-05-13', note:'Reported tightness. No tear on palpation.' },
+      { date:'2026-05-15', note:'Pain free walking. Cleared for low-intensity bike.' },
+    ],
+  },
+];
+
+// PLAYER PROFILES — shared shape; trainer module reads to display names/photos
+const SEED_PLAYER_PROFILES = [
+  { id:'pp-pl-1',  playerId:'pl-1',  fullName:'Marcus Anderson',   age:21, height:'6\'2"',  weight:185, contactPhone:'555-0104', contactEmail:'m.anderson@team.example',  dateOfBirth:'2004-08-12', jerseyNumber:4,  position:'PG', verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 7,  photoDataUrl:null, bio:'Floor general. 4-year starter at point.' },
+  { id:'pp-pl-2',  playerId:'pl-2',  fullName:'Devon Wilson',      age:22, height:'6\'4"',  weight:198, contactPhone:'555-0107', contactEmail:'d.wilson@team.example',   dateOfBirth:'2003-11-30', jerseyNumber:7,  position:'SG', verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 7,  photoDataUrl:null, bio:'Sharpshooter. Three-time conference all-star.' },
+  { id:'pp-pl-3',  playerId:'pl-3',  fullName:'Jordan Carter',     age:20, height:'6\'6"',  weight:210, contactPhone:'555-0123', contactEmail:'j.carter@team.example',   dateOfBirth:'2005-03-04', jerseyNumber:23, position:'SF', verified:false, verifiedBy:null,        verifiedAt:null,                          photoDataUrl:null, bio:'Two-way wing. Always asks for the matchup.' },
+  { id:'pp-pl-4',  playerId:'pl-4',  fullName:'Kevon Brown',       age:23, height:'6\'8"',  weight:235, contactPhone:'555-0132', contactEmail:'k.brown@team.example',    dateOfBirth:'2002-09-18', jerseyNumber:32, position:'PF', verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 14, photoDataUrl:null, bio:'Captain. Rebounds for everyone.' },
+  { id:'pp-pl-5',  playerId:'pl-5',  fullName:'Lewis Mitchell',    age:24, height:'6\'11"', weight:255, contactPhone:'555-0155', contactEmail:'l.mitchell@team.example', dateOfBirth:'2001-12-22', jerseyNumber:55, position:'C',  verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 14, photoDataUrl:null, bio:'Rim protector. Career-high 7 blocks.' },
+  { id:'pp-pl-6',  playerId:'pl-6',  fullName:'Aiden Thompson',    age:19, height:'5\'11"', weight:172, contactPhone:'555-0101', contactEmail:'a.thompson@team.example', dateOfBirth:'2006-06-15', jerseyNumber:1,  position:'PG', verified:false, verifiedBy:null,        verifiedAt:null,                          photoDataUrl:null, bio:'Freshman. Quick first step.' },
+  { id:'pp-pl-7',  playerId:'pl-7',  fullName:'Ryan Davis',        age:20, height:'6\'3"',  weight:189, contactPhone:'555-0111', contactEmail:'r.davis@team.example',    dateOfBirth:'2005-01-25', jerseyNumber:11, position:'SG', verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 21, photoDataUrl:null, bio:'Hustle stats off the charts.' },
+  { id:'pp-pl-8',  playerId:'pl-8',  fullName:'Carlos Martinez',   age:21, height:'6\'5"',  weight:205, contactPhone:'555-0121', contactEmail:'c.martinez@team.example', dateOfBirth:'2004-04-08', jerseyNumber:21, position:'SF', verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 21, photoDataUrl:null, bio:'Versatile defender. 1-4 switchable.' },
+  { id:'pp-pl-9',  playerId:'pl-9',  fullName:'Brandon White',     age:22, height:'6\'9"',  weight:228, contactPhone:'555-0134', contactEmail:'b.white@team.example',    dateOfBirth:'2003-07-14', jerseyNumber:34, position:'PF', verified:false, verifiedBy:null,        verifiedAt:null,                          photoDataUrl:null, bio:'Pick-and-pop big. Stretch four.' },
+  { id:'pp-pl-10', playerId:'pl-10', fullName:'Tyrese Hall',       age:23, height:'6\'10"', weight:248, contactPhone:'555-0142', contactEmail:'t.hall@team.example',     dateOfBirth:'2002-10-02', jerseyNumber:42, position:'C',  verified:true,  verifiedBy: COACH.name, verifiedAt: Date.now() - 86400000 * 30, photoDataUrl:null, bio:'Skilled five. Soft hands on the roll.' },
+];
+
+/* =========================================================================
+   STORAGE + HOOKS — shared with all other modules
+   ========================================================================= */
+const Storage = {
+  async get(k){ if(!window.storage) return null; try { const r = await window.storage.get(k); return r?.value ? JSON.parse(r.value) : null; } catch { return null; } },
+  async set(k,v){ if(!window.storage) return false; try { await window.storage.set(k, JSON.stringify(v)); return true; } catch { return false; } },
+  async delete(k){ if(!window.storage) return false; try { await window.storage.delete(k); return true; } catch { return false; } },
+  async list(p){ if(!window.storage) return []; try { const r = await window.storage.list(p); return r?.keys || []; } catch { return []; } },
+};
+if (typeof window !== 'undefined' && !window.storage) {
+  const mem = {};
+  window.storage = {
+    async get(k){ if(!(k in mem)) throw new Error('not found'); return { value: mem[k] }; },
+    async set(k,v){ mem[k] = v; return true; },
+    async delete(k){ delete mem[k]; return true; },
+    async list(p){ return { keys: Object.keys(mem).filter(k => k.startsWith(p)) }; },
+  };
+}
+
+function useCollection(prefix, defaults = []) {
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const keys = await Storage.list(`${prefix}:`);
+      const seeded = await Storage.get(`${prefix}:__seeded`);
+      const itemKeys = keys.filter((k) => !k.endsWith(':__seeded'));
+      const all = await Promise.all(itemKeys.map((k) => Storage.get(k)));
+      const valid = all.filter(Boolean).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      if (!seeded && valid.length === 0 && defaults.length > 0) {
+        await Storage.set(`${prefix}:__seeded`, true);
+        for (const d of defaults) await Storage.set(`${prefix}:${d.id}`, { ...d, updatedAt: d.updatedAt || Date.now() });
+        if (!cancelled) setItems([...defaults]);
+      } else if (!cancelled) setItems(valid);
+      if (!cancelled) setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [prefix]);
+  const save = useCallback(async (item) => {
+    const id = item.id || `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const next = { ...item, id, updatedAt: Date.now() };
+    await Storage.set(`${prefix}:${id}`, next);
+    setItems(prev => { const idx = prev.findIndex(p => p.id === id); if (idx === -1) return [next, ...prev]; const arr = [...prev]; arr[idx] = next; return arr; });
+    return next;
+  }, [prefix]);
+  const remove = useCallback(async (id) => {
+    await Storage.delete(`${prefix}:${id}`);
+    setItems(prev => prev.filter(p => p.id !== id));
+  }, [prefix]);
+  return { items, save, remove, loaded };
+}
+function useStored(key, initial) {
+  const [value, setValue] = useState(initial);
+  useEffect(() => { let c=false; (async () => { const v = await Storage.get(key); if (v !== null && !c) setValue(v); })(); return () => { c = true; }; }, [key]);
+  const set = useCallback(v => setValue(prev => { const n = typeof v === 'function' ? v(prev) : v; Storage.set(key, n); return n; }), [key]);
+  return [value, set];
+}
+
+const newId = (p) => `${p}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+function fmtRel(ts){ if(!ts) return '—'; const s=Math.round((Date.now()-ts)/1000); if(s<60) return s+'s ago'; const m=Math.round(s/60); if(m<60) return m+'m ago'; const h=Math.round(m/60); if(h<24) return h+'h ago'; const d=Math.round(h/24); if(d<30) return d+'d ago'; return new Date(ts).toLocaleDateString(); }
+function fmtDate(s){ if (!s) return '—'; const d = new Date(s); return isNaN(d.getTime()) ? s : d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }); }
+
+/* =========================================================================
+   UI PRIMITIVES
+   ========================================================================= */
+function Modal({ open, onClose, title, subtitle, children, footer, size = 'md' }) {
+  useEffect(() => { if (!open) return; const k = e => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [open, onClose]);
+  if (!open) return null;
+  const sizes = { sm:'max-w-md', md:'max-w-lg', lg:'max-w-2xl', xl:'max-w-4xl' };
+  return (
+    <div className="fixed inset-0 z-50 bg-stone-950/65 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className={`bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[92vh] flex flex-col`} onClick={(e) => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-stone-900">{title}</h2>
+            {subtitle && <p className="text-[12.5px] text-stone-500 mt-0.5">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-700 p-1.5 rounded hover:bg-stone-100"><I.Close className="w-5 h-5"/></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        {footer && <div className="px-5 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-end gap-2 rounded-b-2xl">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+function ConfirmDialog({ open, onConfirm, onCancel, title, message, confirmLabel='Delete', danger=true }) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title} size="sm"
+      footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onConfirm} className={`px-3.5 py-2 text-[13px] font-semibold text-white rounded-md btn-press ${danger ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'}`}>{confirmLabel}</button>
+      </>}>
+      <p className="text-[14px] text-stone-700 leading-relaxed">{message}</p>
+    </Modal>
+  );
+}
+function TextField({ label, value, onChange, placeholder, type='text', required }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}{required && <span className="text-red-600 ml-0.5">*</span>}</span>
+      <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"/>
+    </label>
+  );
+}
+function NumberField({ label, value, onChange, min, max, step, placeholder }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <input type="number" value={value ?? ''} onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
+        min={min} max={max} step={step} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"/>
+    </label>
+  );
+}
+function SelectField({ label, value, onChange, options }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <select value={value || ''} onChange={e => onChange(e.target.value)}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
+        {options.map(o => <option key={o.value ?? o} value={o.value ?? o}>{o.label || o}</option>)}
+      </select>
+    </label>
+  );
+}
+function TextArea({ label, value, onChange, rows=4, placeholder }) {
+  return (
+    <label className="block mb-3">
+      <span className="text-[11.5px] font-semibold text-stone-700 mb-1 block">{label}</span>
+      <textarea value={value || ''} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder}
+        className="w-full px-3 py-2 text-[13.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none"/>
+    </label>
+  );
+}
+function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div className="px-7 py-5 border-b border-stone-200 bg-white flex items-start justify-between gap-4">
+      <div>
+        <h1 className="font-display text-[22px] font-semibold text-stone-900">{title}</h1>
+        {subtitle && <p className="text-[13px] text-stone-500 mt-1">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+    </div>
+  );
+}
+function StatusBadge({ kind }) {
+  const map = {
+    active:    { c:'bg-emerald-100 text-emerald-700', l:'Active' },
+    monitoring:{ c:'bg-amber-100 text-amber-700',     l:'Monitoring' },
+    recovered: { c:'bg-stone-100 text-stone-700',     l:'Recovered' },
+    archived:  { c:'bg-stone-100 text-stone-500',     l:'Archived' },
+  };
+  const s = map[kind] || map.archived;
+  return <span className={`text-[10.5px] font-bold uppercase px-2 py-0.5 rounded ${s.c}`}>{s.l}</span>;
+}
+
+/* =========================================================================
+   ROLE GATE
+   ========================================================================= */
+function useRoleGate(expected) {
+  const [role, setRole] = useStored('currentUser:role', null);
+  const [name] = useStored('currentUser:name', null);
+  const checking = role === null;
+  const mismatch = !checking && role !== expected;
+  return { role, name, checking, mismatch, setRole };
+}
+function RoleGateScreen({ role, expected }) {
+  return (
+    <div className="h-full canvas-bg flex items-center justify-center p-6">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 mx-auto flex items-center justify-center mb-3"><I.Bell className="w-6 h-6"/></div>
+        <h1 className="font-display text-lg font-bold text-stone-900">Wrong module for your role</h1>
+        <p className="text-[13px] text-stone-600 mt-2">{role ? `You're signed in as ${role}.` : 'You aren’t signed in.'} This is the {expected} module.</p>
+        <a href="login.html" className="inline-block mt-5 px-4 py-2 text-[13px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press">Go to login</a>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ROUTER
+   ========================================================================= */
+const RouterCtx = createContext({ route:'dashboard', params:{}, go:()=>{} });
+const useRouter = () => useContext(RouterCtx);
+
+/* =========================================================================
+   ROUTES placeholder — populated after pages are defined
+   ========================================================================= */
+let ROUTES = {};
+
+/* =========================================================================
+   DASHBOARD (DASH-01..05 for the trainer)
+   ========================================================================= */
+function DashboardPage({ roster }) {
+  const { go } = useRouter();
+  const workouts = useCollection('workouts', SEED_WORKOUTS);
+  const diet = useCollection('dietPlans', SEED_DIET);
+  const injuries = useCollection('injuries', SEED_INJURIES);
+  const attrs = useCollection('attributes', SEED_ATTRIBUTES);
+  const messages = useCollection('messages', []);
+  const TRAINER_ID = 'trainer-1';
+
+  const activeInj = injuries.items.filter(i => i.status === 'active' || i.status === 'monitoring').length;
+  const assignedWorkoutPlayers = new Set(workouts.items.map(w => w.playerId)).size;
+  const assignedDietPlayers = new Set(diet.items.map(d => d.playerId)).size;
+
+  const unread = messages.items.filter(m => {
+    if (m.from?.userId === TRAINER_ID) return false;
+    const mine = (m.to?.scope === 'role' && m.to?.role === 'trainer') || (m.to?.scope === 'player');
+    return mine && !(m.readBy && m.readBy[TRAINER_ID]);
+  }).length;
+
+  const recentAttrs = [...attrs.items].sort((a,b) => (b.recordedAt||0) - (a.recordedAt||0)).slice(0, 5);
+  const recentInj = [...injuries.items].sort((a,b) => (b.reportedAt||0) - (a.reportedAt||0)).slice(0, 4);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Welcome back, Trainer Wells" subtitle="Daily training overview."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          <Stat tile label="Athletes" value={roster.length} desc="active roster" icon={I.Users} onClick={() => go('athletes')}/>
+          <Stat tile label="Workouts assigned" value={assignedWorkoutPlayers + '/' + roster.length} desc="players with a plan" icon={I.Dumb} onClick={() => go('workouts')}/>
+          <Stat tile label="Diet plans" value={assignedDietPlayers + '/' + roster.length} desc="players with nutrition" icon={I.Apple} onClick={() => go('diet')}/>
+          <Stat tile label="Active injuries" value={activeInj} desc="active + monitoring" icon={I.Bandage} onClick={() => go('injuries')} accent={activeInj > 0 ? 'amber' : null}/>
+
+          <div className="col-span-12 lg:col-span-8 bg-white border border-stone-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-display text-[15px] font-semibold text-stone-900">Recent attribute records</div>
+                <div className="text-[11.5px] text-stone-500">Most recently updated</div>
+              </div>
+              <button onClick={() => go('attributes')} className="text-[11.5px] text-amber-700 font-medium hover:underline">All attributes →</button>
+            </div>
+            <table className="w-full text-[12.5px]">
+              <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+                <th className="text-left py-1 font-semibold">Athlete</th>
+                <th className="text-right font-semibold">Wt (kg)</th>
+                <th className="text-right font-semibold">BF %</th>
+                <th className="text-right font-semibold">Vert "</th>
+                <th className="text-right font-semibold">Recorded</th>
+              </tr></thead>
+              <tbody>
+                {recentAttrs.map(a => {
+                  const p = roster.find(r => r.id === a.playerId); if (!p) return null;
+                  return (
+                    <tr key={a.id} className="border-t border-stone-50 hover:bg-stone-50 cursor-pointer" onClick={() => go('athlete', { playerId: p.id })}>
+                      <td className="py-1.5 text-stone-800 font-medium">#{p.number} {p.name}</td>
+                      <td className="text-right font-mono">{a.weightKg}</td>
+                      <td className="text-right font-mono">{a.bodyFatPct}</td>
+                      <td className="text-right font-mono">{a.verticalInches}</td>
+                      <td className="text-right text-stone-500">{fmtRel(a.recordedAt)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="col-span-12 lg:col-span-4 bg-white border border-stone-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-display text-[15px] font-semibold text-stone-900">Injury feed</div>
+                <div className="text-[11.5px] text-stone-500">Latest reports</div>
+              </div>
+              <button onClick={() => go('injuries')} className="text-[11.5px] text-amber-700 font-medium hover:underline">All →</button>
+            </div>
+            <div className="space-y-2">
+              {recentInj.map(i => {
+                const p = roster.find(r => r.id === i.playerId); if (!p) return null;
+                return (
+                  <button key={i.id} onClick={() => go('injuryDetail', { injuryId: i.id })} className="w-full text-left border border-stone-100 rounded-lg p-3 hover:bg-stone-50">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[12.5px] font-semibold text-stone-900 truncate">{i.title}</span>
+                      <StatusBadge kind={i.status}/>
+                    </div>
+                    <div className="text-[11.5px] text-stone-500 mt-0.5">#{p.number} {p.name} • {fmtRel(i.reportedAt)}</div>
+                  </button>
+                );
+              })}
+              {recentInj.length === 0 && <div className="text-[12px] text-stone-500">No recent injuries.</div>}
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-6 bg-white border border-stone-200 rounded-xl p-5">
+            <div className="font-display text-[15px] font-semibold text-stone-900 mb-2">Coverage check</div>
+            <div className="text-[11.5px] text-stone-500 mb-3">Athletes without an assigned plan</div>
+            <div className="grid grid-cols-2 gap-2">
+              {roster.map(r => {
+                const hasWO = workouts.items.some(w => w.playerId === r.id);
+                const hasD = diet.items.some(d => d.playerId === r.id);
+                if (hasWO && hasD) return null;
+                return (
+                  <button key={r.id} onClick={() => go('athlete', { playerId: r.id })} className="text-left p-2 border border-stone-100 rounded hover:bg-stone-50">
+                    <div className="text-[12px] font-semibold text-stone-800 truncate">#{r.number} {r.name}</div>
+                    <div className="text-[10.5px] text-stone-500 mt-0.5">
+                      {!hasWO && <span className="mr-2 text-amber-700">⚠ no workout</span>}
+                      {!hasD && <span className="text-amber-700">⚠ no diet</span>}
+                    </div>
+                  </button>
+                );
+              })}
+              {roster.every(r => workouts.items.some(w => w.playerId === r.id) && diet.items.some(d => d.playerId === r.id)) && (
+                <div className="col-span-2 text-[12.5px] text-emerald-700">✓ All athletes have workouts & diets assigned.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-6 bg-white border border-stone-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-display text-[15px] font-semibold text-stone-900 flex items-center gap-2">Inbox {unread > 0 && <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10.5px] font-bold inline-flex items-center justify-center">{unread}</span>}</div>
+              <button onClick={() => go('messages')} className="text-[11.5px] text-amber-700 font-medium hover:underline">Open →</button>
+            </div>
+            <div className="space-y-2">
+              {[...messages.items].filter(m => m.from?.userId !== TRAINER_ID && ((m.to?.scope === 'role' && m.to?.role === 'trainer') || m.to?.scope === 'player'))
+                .sort((a,b) => (b.sentAt||0) - (a.sentAt||0)).slice(0,3).map(m => (
+                  <button key={m.id} onClick={() => go('messages', { messageId: m.id })} className="w-full text-left border border-stone-100 rounded-lg p-2.5 hover:bg-stone-50">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-[12.5px] font-semibold text-stone-800 truncate">{m.from?.name}</span>
+                      <span className="text-[10.5px] text-stone-400">{fmtRel(m.sentAt)}</span>
+                    </div>
+                    <div className="text-[12px] text-stone-600 truncate">{m.subject}</div>
+                  </button>
+                ))}
+              {messages.items.filter(m => m.from?.userId !== TRAINER_ID).length === 0 && <div className="text-[12px] text-stone-500">No messages yet.</div>}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function Stat({ label, value, desc, icon: Icon, onClick, accent }) {
+  const accentClass = accent === 'amber' ? 'ring-1 ring-amber-200 bg-amber-50/40' : '';
+  return (
+    <button onClick={onClick} className={`col-span-6 sm:col-span-3 bg-white border border-stone-200 rounded-xl p-4 text-left hover:shadow-sm hover:border-amber-200 transition ${accentClass}`}>
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">{label}</div>
+        <Icon className="w-4 h-4 text-stone-400"/>
+      </div>
+      <div className="font-display text-3xl font-bold text-stone-900 mt-1">{value}</div>
+      <div className="text-[11px] text-stone-400 mt-0.5">{desc}</div>
+    </button>
+  );
+}
+
+/* =========================================================================
+   ATHLETES LIST (drill-down for ATTR-03, WRK-04, INJ-03, …)
+   ========================================================================= */
+function AthletesPage({ roster }) {
+  const { go } = useRouter();
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+  const attrs = useCollection('attributes', SEED_ATTRIBUTES);
+  const workouts = useCollection('workouts', SEED_WORKOUTS);
+  const diet = useCollection('dietPlans', SEED_DIET);
+  const injuries = useCollection('injuries', SEED_INJURIES);
+  const [query, setQuery] = useState('');
+  const [posFilter, setPosFilter] = useState('all');
+
+  const rows = useMemo(() => {
+    let r = roster.map(p => ({
+      ...p,
+      profile: profiles.items.find(pp => pp.playerId === p.id),
+      hasAttr: attrs.items.some(a => a.playerId === p.id),
+      hasWO: workouts.items.some(w => w.playerId === p.id),
+      hasDiet: diet.items.some(d => d.playerId === p.id),
+      activeInj: injuries.items.filter(i => i.playerId === p.id && (i.status === 'active' || i.status === 'monitoring')).length,
+    }));
+    if (posFilter !== 'all') r = r.filter(x => x.position === posFilter);
+    if (query.trim()) r = r.filter(x => x.name.toLowerCase().includes(query.toLowerCase()) || (x.profile?.fullName||'').toLowerCase().includes(query.toLowerCase()));
+    return r.sort((a,b) => a.number - b.number);
+  }, [roster, profiles.items, attrs.items, workouts.items, diet.items, injuries.items, query, posFilter]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Athletes" subtitle="Drill into per-athlete records."/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <I.Search className="w-4 h-4 absolute left-2.5 top-2.5 text-stone-400"/>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search athletes…"
+            className="w-full pl-8 pr-3 py-1.5 text-[12.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <select value={posFilter} onChange={e => setPosFilter(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="all">All positions</option>
+          {['PG','SG','SF','PF','C'].map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+              <th className="text-left py-2.5 px-4 font-semibold">#</th>
+              <th className="text-left font-semibold">Name</th>
+              <th className="text-left font-semibold">Position</th>
+              <th className="text-center font-semibold">Attrs</th>
+              <th className="text-center font-semibold">Workout</th>
+              <th className="text-center font-semibold">Diet</th>
+              <th className="text-center font-semibold">Injuries</th>
+              <th className="text-right font-semibold px-4">Action</th>
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-t border-stone-100 hover:bg-stone-50 cursor-pointer" onClick={() => go('athlete', { playerId: r.id })}>
+                  <td className="py-2 px-4 font-mono text-stone-700">{r.number}</td>
+                  <td className="font-semibold text-stone-900">{r.profile?.fullName || r.name}</td>
+                  <td className="text-stone-700">{r.position}</td>
+                  <td className="text-center">{r.hasAttr ? <Yes/> : <No/>}</td>
+                  <td className="text-center">{r.hasWO ? <Yes/> : <No/>}</td>
+                  <td className="text-center">{r.hasDiet ? <Yes/> : <No/>}</td>
+                  <td className="text-center">{r.activeInj > 0 ? <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">{r.activeInj}</span> : <span className="text-stone-300">—</span>}</td>
+                  <td className="text-right px-4 text-[12px] text-amber-700">Open →</td>
+                </tr>
+              ))}
+              {rows.length === 0 && <tr><td colSpan={8} className="text-center text-stone-500 py-6">No athletes match those filters.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+const Yes = () => <span className="inline-flex w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 items-center justify-center"><I.Check className="w-3 h-3"/></span>;
+const No = () => <span className="inline-flex w-5 h-5 rounded-full bg-stone-100 text-stone-400 items-center justify-center text-[12px]">—</span>;
+
+/* =========================================================================
+   ATHLETE DETAIL — unified view for everything trainer-owned on one athlete
+   ========================================================================= */
+function AthleteDetailPage({ roster }) {
+  const { params, go } = useRouter();
+  const player = roster.find(r => r.id === params.playerId);
+  const profiles = useCollection('playerProfiles', SEED_PLAYER_PROFILES);
+  const attrs = useCollection('attributes', SEED_ATTRIBUTES);
+  const workouts = useCollection('workouts', SEED_WORKOUTS);
+  const diet = useCollection('dietPlans', SEED_DIET);
+  const injuries = useCollection('injuries', SEED_INJURIES);
+  const [tab, setTab] = useState('attrs');
+
+  if (!player) return <div className="flex-1 flex items-center justify-center text-stone-500">Athlete not found.</div>;
+  const profile = profiles.items.find(p => p.playerId === player.id);
+  const a = attrs.items.find(x => x.playerId === player.id);
+  const wos = workouts.items.filter(w => w.playerId === player.id);
+  const ds = diet.items.filter(d => d.playerId === player.id);
+  const inj = injuries.items.filter(i => i.playerId === player.id);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={profile?.fullName || player.name}
+        subtitle={`#${player.number} • ${player.position}`}
+        actions={<button onClick={() => go('athletes')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>Athletes</button>}/>
+      <div className="px-7 py-2 border-b border-stone-200 bg-white flex items-center gap-1.5">
+        {[
+          { id:'attrs',    label:'Attributes', count: a ? 1 : 0 },
+          { id:'workouts', label:'Workouts',   count: wos.length },
+          { id:'diet',     label:'Diet',       count: ds.length },
+          { id:'inj',      label:'Injuries',   count: inj.length },
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-3 py-1.5 text-[12px] font-semibold rounded-md flex items-center gap-1.5 ${tab === t.id ? 'bg-amber-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>
+            {t.label}{t.count > 0 && <span className={`text-[10px] px-1.5 rounded-full ${tab === t.id ? 'bg-amber-700 text-amber-100' : 'bg-stone-300 text-stone-700'}`}>{t.count}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        {tab === 'attrs' && <AthleteAttrs player={player} attr={a}/>}
+        {tab === 'workouts' && <AthleteWorkouts player={player} workouts={wos}/>}
+        {tab === 'diet' && <AthleteDiet player={player} plans={ds}/>}
+        {tab === 'inj' && <AthleteInjuries player={player} injuries={inj}/>}
+      </div>
+    </div>
+  );
+}
+function AthleteAttrs({ player, attr }) {
+  const { go } = useRouter();
+  if (!attr) return (
+    <div className="bg-white border border-stone-200 rounded-xl p-6 text-center">
+      <div className="text-[13px] text-stone-700 mb-2">No attribute record yet for {player.name}.</div>
+      <button onClick={() => go('attributes', { playerId: player.id, create:true })} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press">Record attributes</button>
+    </div>
+  );
+  return (
+    <>
+      <div className="bg-white border border-stone-200 rounded-xl p-5 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-display text-[15px] font-semibold text-stone-900">Current attributes</div>
+          <button onClick={() => go('attributes', { playerId: player.id })} className="text-[12px] text-amber-700 hover:underline">Edit →</button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <Tile label="Height" v={`${attr.heightCm} cm`}/>
+          <Tile label="Weight" v={`${attr.weightKg} kg`}/>
+          <Tile label="Body fat" v={`${attr.bodyFatPct}%`}/>
+          <Tile label="Wingspan" v={`${attr.wingspanCm} cm`}/>
+          <Tile label="Vertical" v={`${attr.verticalInches}"`}/>
+          <Tile label="40 yd" v={`${attr.fortyYdSec.toFixed(2)}s`}/>
+          <Tile label="Bench" v={`${attr.benchMax} lb`}/>
+        </div>
+        <div className="mt-3 pt-3 border-t border-stone-100 text-[11px] text-stone-500">Recorded {fmtRel(attr.recordedAt)} by {attr.recordedBy}</div>
+      </div>
+      {attr.history?.length > 0 && (
+        <div className="bg-white border border-stone-200 rounded-xl p-5">
+          <div className="font-display text-[15px] font-semibold text-stone-900 mb-2">History (ATTR-03)</div>
+          <table className="w-full text-[12px]">
+            <thead><tr className="text-stone-500 text-[10px] uppercase border-b border-stone-100">
+              <th className="text-left py-1 font-semibold">Date</th>
+              <th className="text-right font-semibold">Wt</th>
+              <th className="text-right font-semibold">BF %</th>
+              <th className="text-right font-semibold">Vert "</th>
+              <th className="text-left font-semibold pl-3">Recorded by</th>
+            </tr></thead>
+            <tbody>
+              {attr.history.map(h => (
+                <tr key={h.date} className="border-t border-stone-50">
+                  <td className="py-1.5 font-mono text-stone-600">{h.date}</td>
+                  <td className="text-right font-mono">{h.weightKg}</td>
+                  <td className="text-right font-mono">{h.bodyFatPct}</td>
+                  <td className="text-right font-mono">{h.verticalInches}</td>
+                  <td className="pl-3 text-stone-700">{h.recordedBy}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+function AthleteWorkouts({ player, workouts }) {
+  const { go } = useRouter();
+  return (
+    <>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[13px] text-stone-700">{workouts.length} workout plan{workouts.length === 1 ? '' : 's'} for {player.name}.</div>
+        <button onClick={() => go('workouts', { playerId: player.id, create:true })} className="px-3 py-1.5 text-[12px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700">+ Assign workout</button>
+      </div>
+      <div className="space-y-3">
+        {workouts.map(w => (
+          <div key={w.id} className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-display text-[14.5px] font-semibold text-stone-900">{w.title}</div>
+                <div className="text-[11.5px] text-stone-500 mt-0.5">{w.focus} • {fmtRel(w.assignedAt)} • {w.blocks.length} blocks</div>
+              </div>
+              <button onClick={() => go('workouts', { workoutId: w.id })} className="text-[12px] text-amber-700 hover:underline">Edit</button>
+            </div>
+          </div>
+        ))}
+        {workouts.length === 0 && <div className="text-center text-stone-500 py-6 text-[13px]">No workouts assigned yet.</div>}
+      </div>
+    </>
+  );
+}
+function AthleteDiet({ player, plans }) {
+  const { go } = useRouter();
+  return (
+    <>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[13px] text-stone-700">{plans.length} dietary plan{plans.length === 1 ? '' : 's'} for {player.name}.</div>
+        <button onClick={() => go('diet', { playerId: player.id, create:true })} className="px-3 py-1.5 text-[12px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700">+ Assign diet</button>
+      </div>
+      <div className="space-y-3">
+        {plans.map(d => (
+          <div key={d.id} className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-display text-[14.5px] font-semibold text-stone-900">{d.title}</div>
+                <div className="text-[11.5px] text-stone-500 mt-0.5">{d.kcal} kcal • {d.protein}g P / {d.carbs}g C / {d.fat}g F • {fmtRel(d.assignedAt)}</div>
+              </div>
+              <button onClick={() => go('diet', { dietId: d.id })} className="text-[12px] text-amber-700 hover:underline">Edit</button>
+            </div>
+          </div>
+        ))}
+        {plans.length === 0 && <div className="text-center text-stone-500 py-6 text-[13px]">No dietary plans yet.</div>}
+      </div>
+    </>
+  );
+}
+function AthleteInjuries({ player, injuries }) {
+  const { go } = useRouter();
+  return (
+    <>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[13px] text-stone-700">{injuries.length} injury record{injuries.length === 1 ? '' : 's'} for {player.name}.</div>
+        <button onClick={() => go('injuries', { playerId: player.id, create:true })} className="px-3 py-1.5 text-[12px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700">+ New report</button>
+      </div>
+      <div className="space-y-3">
+        {injuries.map(i => (
+          <button key={i.id} onClick={() => go('injuryDetail', { injuryId: i.id })} className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-amber-200">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="font-display text-[14.5px] font-semibold text-stone-900 truncate">{i.title}</div>
+                  <StatusBadge kind={i.status}/>
+                </div>
+                <div className="text-[11.5px] text-stone-500 mt-0.5">{i.bodyPart} • {i.severity} • occurred {fmtDate(i.occurredAt)} • reported {fmtRel(i.reportedAt)}</div>
+                <div className="text-[12.5px] text-stone-700 mt-2 line-clamp-2">{i.mechanism}</div>
+              </div>
+            </div>
+          </button>
+        ))}
+        {injuries.length === 0 && <div className="text-center text-stone-500 py-6 text-[13px]">No injury reports yet.</div>}
+      </div>
+    </>
+  );
+}
+function Tile({ label, v }) {
+  return (
+    <div className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+      <div className="text-[10.5px] font-semibold text-stone-500 uppercase tracking-wider">{label}</div>
+      <div className="font-display text-[17px] font-bold text-stone-900">{v}</div>
+    </div>
+  );
+}
+
+/* =========================================================================
+   ATTRIBUTES PAGE (ATTR-01..03) — entry + history grid
+   ========================================================================= */
+function AttributesPage({ roster }) {
+  const { params, go } = useRouter();
+  const attrs = useCollection('attributes', SEED_ATTRIBUTES);
+  const [editing, setEditing] = useState(null);
+
+  useEffect(() => {
+    if (params?.playerId) {
+      const existing = attrs.items.find(a => a.playerId === params.playerId);
+      if (params.create || !existing) {
+        setEditing({ id:null, playerId: params.playerId, recordedBy: TRAINER.name, recordedAt: Date.now(),
+          heightCm:180, weightKg:80, bodyFatPct:10, wingspanCm:188, verticalInches:30, fortyYdSec:4.8, benchMax:155, squatMax:225, history: [] });
+      } else {
+        setEditing({ ...existing });
+      }
+    }
+  }, [params?.playerId, params?.create, attrs.items.length]);
+
+  const save = async () => {
+    if (!editing) return;
+    const existing = attrs.items.find(a => a.playerId === editing.playerId);
+    const newRow = { date: new Date().toISOString().slice(0,10), heightCm: editing.heightCm, weightKg: editing.weightKg, bodyFatPct: editing.bodyFatPct, verticalInches: editing.verticalInches, recordedBy: TRAINER.name };
+    const prevHistory = existing?.history || [];
+    const next = { ...editing,
+      id: editing.id || `at-${editing.playerId}`,
+      recordedAt: Date.now(),
+      recordedBy: TRAINER.name,
+      history: [...prevHistory.filter(h => h.date !== newRow.date), newRow].sort((a,b) => a.date.localeCompare(b.date)),
+    };
+    await attrs.save(next);
+    setEditing(null);
+    go('attributes');
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Physical attributes" subtitle="Record and review athlete attributes."/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+              <th className="text-left py-2.5 px-4 font-semibold">Athlete</th>
+              <th className="text-right font-semibold">Ht (cm)</th>
+              <th className="text-right font-semibold">Wt (kg)</th>
+              <th className="text-right font-semibold">BF %</th>
+              <th className="text-right font-semibold">Vert "</th>
+              <th className="text-right font-semibold">40 yd</th>
+              <th className="text-right font-semibold">Updated</th>
+              <th className="text-right font-semibold px-4">Action</th>
+            </tr></thead>
+            <tbody>
+              {roster.sort((a,b) => a.number - b.number).map(p => {
+                const a = attrs.items.find(x => x.playerId === p.id);
+                return (
+                  <tr key={p.id} className="border-t border-stone-100 hover:bg-stone-50">
+                    <td className="py-2 px-4 font-semibold text-stone-900">#{p.number} {p.name}</td>
+                    <td className="text-right font-mono">{a?.heightCm ?? '—'}</td>
+                    <td className="text-right font-mono">{a?.weightKg ?? '—'}</td>
+                    <td className="text-right font-mono">{a?.bodyFatPct ?? '—'}</td>
+                    <td className="text-right font-mono">{a?.verticalInches ?? '—'}</td>
+                    <td className="text-right font-mono">{a?.fortyYdSec?.toFixed(2) ?? '—'}</td>
+                    <td className="text-right text-stone-500 text-[11.5px]">{a ? fmtRel(a.recordedAt) : '—'}</td>
+                    <td className="text-right px-4">
+                      <button onClick={() => setEditing(a ? { ...a } : { id:null, playerId: p.id, recordedBy: TRAINER.name, heightCm:180, weightKg:80, bodyFatPct:10, wingspanCm:188, verticalInches:30, fortyYdSec:4.8, benchMax:155, squatMax:225, history:[] })}
+                        className="text-[12px] font-semibold text-amber-700 hover:underline">{a ? 'Edit' : 'Record'}</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)}
+        title={editing?.id ? 'Edit attributes' : 'Record attributes'}
+        subtitle={editing ? `${(roster.find(r => r.id === editing.playerId)||{}).name} — physical attributes` : ''}
+        size="lg" footer={<>
+          <button onClick={() => setEditing(null)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={save} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-amber-600 hover:bg-amber-700 btn-press">Save</button>
+        </>}>
+        {editing && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <NumberField label="Height (cm)" value={editing.heightCm} onChange={v => setEditing({...editing, heightCm:v})} min={100} max={250}/>
+            <NumberField label="Weight (kg)" value={editing.weightKg} onChange={v => setEditing({...editing, weightKg:v})} min={30} max={200}/>
+            <NumberField label="Body fat (%)" value={editing.bodyFatPct} onChange={v => setEditing({...editing, bodyFatPct:v})} min={0} max={50}/>
+            <NumberField label="Wingspan (cm)" value={editing.wingspanCm} onChange={v => setEditing({...editing, wingspanCm:v})} min={100} max={250}/>
+            <NumberField label="Vertical (in)" value={editing.verticalInches} onChange={v => setEditing({...editing, verticalInches:v})} min={0} max={60}/>
+            <NumberField label="40 yd (s)" value={editing.fortyYdSec} onChange={v => setEditing({...editing, fortyYdSec:v})} step="0.01" min={4} max={7}/>
+            <NumberField label="Bench max (lb)" value={editing.benchMax} onChange={v => setEditing({...editing, benchMax:v})} min={0}/>
+            <NumberField label="Squat max (lb)" value={editing.squatMax} onChange={v => setEditing({...editing, squatMax:v})} min={0}/>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* =========================================================================
+   EXERCISE LIBRARY (WRK-01, WRK-02)
+   ========================================================================= */
+function ExerciseLibraryPage() {
+  const exercises = useCollection('exercises', SEED_EXERCISES);
+  const [query, setQuery] = useState('');
+  const [cat, setCat] = useState('All');
+  const [diff, setDiff] = useState('all');
+  const [editing, setEditing] = useState(null);
+
+  const rows = exercises.items
+    .filter(e => cat === 'All' || e.category === cat)
+    .filter(e => diff === 'all' || e.difficulty === diff)
+    .filter(e => !query || e.name.toLowerCase().includes(query.toLowerCase()) || e.desc?.toLowerCase().includes(query.toLowerCase()));
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Exercise library" subtitle="Browse and filter the exercise library."
+        actions={<button onClick={() => setEditing({ id:null, name:'', category:'Strength', muscleGroups:[], equipment:'None', difficulty:'Beginner', desc:'' })} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press flex items-center gap-1.5"><I.Plus className="w-4 h-4"/>New exercise</button>}/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-sm">
+          <I.Search className="w-4 h-4 absolute left-2.5 top-2.5 text-stone-400"/>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search exercises…"
+            className="w-full pl-8 pr-3 py-1.5 text-[12.5px] border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <select value={cat} onChange={e => setCat(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option>All</option>
+          {EXERCISE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+        </select>
+        <select value={diff} onChange={e => setDiff(e.target.value)} className="px-2.5 py-1.5 text-[12.5px] border border-stone-300 rounded-md bg-white">
+          <option value="all">Any difficulty</option>
+          {['Beginner','Intermediate','Advanced'].map(d => <option key={d}>{d}</option>)}
+        </select>
+        <span className="text-[11.5px] text-stone-500 ml-auto">{rows.length} of {exercises.items.length} exercises</span>
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {rows.map(ex => (
+            <div key={ex.id} className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <div className="font-display text-[14px] font-semibold text-stone-900">{ex.name}</div>
+                <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">{ex.category}</span>
+              </div>
+              <div className="text-[11px] text-stone-500 mb-2">
+                {ex.muscleGroups?.join(' • ')} • {ex.equipment} • <span className="font-semibold text-stone-700">{ex.difficulty}</span>
+              </div>
+              <div className="text-[12px] text-stone-700 line-clamp-2">{ex.desc}</div>
+              <div className="mt-3 pt-3 border-t border-stone-100 flex justify-end">
+                <button onClick={() => setEditing({ ...ex })} className="text-[11.5px] text-amber-700 hover:underline">Edit</button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {rows.length === 0 && <div className="text-center text-stone-500 py-12">No exercises match those filters.</div>}
+      </div>
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit exercise' : 'New exercise'} size="lg"
+        footer={<>
+          <button onClick={() => setEditing(null)} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+          <button onClick={async () => { if (editing.name?.trim()) { await exercises.save({ ...editing, id: editing.id || newId('ex') }); setEditing(null); } }}
+            className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-amber-600 hover:bg-amber-700 btn-press">Save</button>
+        </>}>
+        {editing && (
+          <div className="grid grid-cols-2 gap-x-4">
+            <div className="col-span-2"><TextField label="Name" value={editing.name} onChange={v => setEditing({...editing, name:v})} required/></div>
+            <SelectField label="Category" value={editing.category} onChange={v => setEditing({...editing, category:v})}
+              options={EXERCISE_CATEGORIES.map(c => ({ value:c, label:c }))}/>
+            <SelectField label="Difficulty" value={editing.difficulty} onChange={v => setEditing({...editing, difficulty:v})}
+              options={['Beginner','Intermediate','Advanced'].map(d => ({ value:d, label:d }))}/>
+            <TextField label="Equipment" value={editing.equipment} onChange={v => setEditing({...editing, equipment:v})}/>
+            <TextField label="Muscle groups (comma-separated)" value={(editing.muscleGroups||[]).join(', ')}
+              onChange={v => setEditing({...editing, muscleGroups: v.split(',').map(x => x.trim()).filter(Boolean) })}/>
+            <div className="col-span-2"><TextArea label="Description" value={editing.desc} onChange={v => setEditing({...editing, desc:v})}/></div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* =========================================================================
+   WORKOUT PLANS (WRK-03/04/05)
+   ========================================================================= */
+function WorkoutsPage({ roster }) {
+  const { params, go } = useRouter();
+  const workouts = useCollection('workouts', SEED_WORKOUTS);
+  const exercises = useCollection('exercises', SEED_EXERCISES);
+  const [editing, setEditing] = useState(null);
+  const [confirmRm, setConfirmRm] = useState(null);
+
+  useEffect(() => {
+    if (params?.workoutId) {
+      const w = workouts.items.find(x => x.id === params.workoutId);
+      if (w) setEditing({ ...w });
+    } else if (params?.playerId && params?.create) {
+      setEditing({ id:null, playerId: params.playerId, title:'', focus:'', assignedBy: TRAINER.name, assignedAt: Date.now(), status:'active', blocks:[{ name:'Block 1', exercises:[] }] });
+    }
+  }, [params?.workoutId, params?.playerId, workouts.items.length]);
+
+  const save = async () => {
+    if (!editing?.title?.trim() || !editing?.playerId) return;
+    const next = { ...editing, id: editing.id || newId('wo'), assignedAt: editing.assignedAt || Date.now(), assignedBy: TRAINER.name };
+    await workouts.save(next);
+    setEditing(null);
+    go('workouts');
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Workout plans" subtitle="Create, assign, and edit workout plans."
+        actions={<button onClick={() => setEditing({ id:null, playerId:'', title:'', focus:'', assignedBy: TRAINER.name, assignedAt: Date.now(), status:'active', blocks:[{ name:'Block 1', exercises:[] }] })} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press flex items-center gap-1.5"><I.Plus className="w-4 h-4"/>New workout</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+              <th className="text-left py-2.5 px-4 font-semibold">Plan</th>
+              <th className="text-left font-semibold">Athlete</th>
+              <th className="text-left font-semibold">Focus</th>
+              <th className="text-center font-semibold">Blocks</th>
+              <th className="text-center font-semibold">Status</th>
+              <th className="text-right font-semibold">Assigned</th>
+              <th className="text-right font-semibold px-4">Actions</th>
+            </tr></thead>
+            <tbody>
+              {workouts.items.sort((a,b) => (b.assignedAt||0) - (a.assignedAt||0)).map(w => {
+                const p = roster.find(r => r.id === w.playerId);
+                return (
+                  <tr key={w.id} className="border-t border-stone-100 hover:bg-stone-50">
+                    <td className="py-2 px-4 font-semibold text-stone-900">{w.title}</td>
+                    <td className="text-stone-700">{p ? `#${p.number} ${p.name}` : '—'}</td>
+                    <td className="text-stone-600 text-[12px]">{w.focus}</td>
+                    <td className="text-center font-mono">{w.blocks.length}</td>
+                    <td className="text-center"><StatusBadge kind={w.status}/></td>
+                    <td className="text-right text-stone-500 text-[11.5px]">{fmtRel(w.assignedAt)}</td>
+                    <td className="text-right px-4 space-x-3">
+                      <button onClick={() => setEditing({ ...w })} className="text-[12px] text-amber-700 hover:underline">Edit</button>
+                      <button onClick={() => setConfirmRm(w)} className="text-[12px] text-red-600 hover:underline">Delete</button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {workouts.items.length === 0 && <tr><td colSpan={7} className="text-center text-stone-500 py-6">No workout plans yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <WorkoutEditor open={!!editing} draft={editing} setDraft={setEditing} roster={roster} exercises={exercises.items} onSave={save} onCancel={() => setEditing(null)}/>
+
+      <ConfirmDialog open={!!confirmRm} onCancel={() => setConfirmRm(null)}
+        onConfirm={async () => { await workouts.remove(confirmRm.id); setConfirmRm(null); }}
+        title="Delete workout?" message={`Delete "${confirmRm?.title}"? The athlete will no longer see this plan.`}/>
+    </div>
+  );
+}
+function WorkoutEditor({ open, draft, setDraft, roster, exercises, onSave, onCancel }) {
+  if (!draft) return null;
+  const addBlock = () => setDraft({ ...draft, blocks: [...draft.blocks, { name:`Block ${draft.blocks.length+1}`, exercises:[] }] });
+  const updBlock = (i, b) => setDraft({ ...draft, blocks: draft.blocks.map((x,j) => j === i ? b : x) });
+  const rmBlock = (i) => setDraft({ ...draft, blocks: draft.blocks.filter((_,j) => j !== i) });
+  const addEx = (i) => updBlock(i, { ...draft.blocks[i], exercises: [...draft.blocks[i].exercises, { exId: exercises[0]?.id || '', sets: 3, reps: '10' }] });
+  const updEx = (bi, ei, e) => updBlock(bi, { ...draft.blocks[bi], exercises: draft.blocks[bi].exercises.map((x,j) => j === ei ? e : x) });
+  const rmEx = (bi, ei) => updBlock(bi, { ...draft.blocks[bi], exercises: draft.blocks[bi].exercises.filter((_,j) => j !== ei) });
+  return (
+    <Modal open={open} onClose={onCancel} title={draft.id ? 'Edit workout' : 'New workout'} size="xl"
+      subtitle="Build a workout plan and assign it." footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onSave} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-amber-600 hover:bg-amber-700 btn-press">Save & assign</button>
+      </>}>
+      <div className="grid grid-cols-2 gap-x-4">
+        <SelectField label="Assign to (WRK-04)" value={draft.playerId} onChange={v => setDraft({...draft, playerId:v})}
+          options={[{ value:'', label:'— pick athlete —' }, ...roster.map(r => ({ value:r.id, label:`#${r.number} ${r.name}` }))]}/>
+        <TextField label="Title" value={draft.title} onChange={v => setDraft({...draft, title:v})} required/>
+        <TextField label="Focus" value={draft.focus} onChange={v => setDraft({...draft, focus:v})} placeholder="e.g. lower-body power"/>
+        <SelectField label="Status" value={draft.status} onChange={v => setDraft({...draft, status:v})}
+          options={[{value:'active',label:'Active'},{value:'archived',label:'Archived'}]}/>
+      </div>
+      <div className="mt-4 pt-4 border-t border-stone-200">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-display text-[14px] font-semibold text-stone-900">Blocks</div>
+          <button onClick={addBlock} className="text-[12px] font-semibold text-amber-700 hover:underline">+ Add block</button>
+        </div>
+        <div className="space-y-3">
+          {draft.blocks.map((b, bi) => (
+            <div key={bi} className="border border-stone-200 rounded-lg">
+              <div className="px-3 py-2 bg-stone-50 border-b border-stone-200 flex items-center gap-2">
+                <input value={b.name} onChange={e => updBlock(bi, { ...b, name: e.target.value })}
+                  className="flex-1 px-2 py-1 text-[12.5px] font-semibold border border-stone-200 rounded bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"/>
+                <button onClick={() => rmBlock(bi)} className="text-stone-400 hover:text-red-600"><I.Trash className="w-4 h-4"/></button>
+              </div>
+              <div className="p-3 space-y-1.5">
+                {b.exercises.map((ex, ei) => (
+                  <div key={ei} className="grid grid-cols-12 gap-2 items-center">
+                    <select value={ex.exId} onChange={e => updEx(bi, ei, { ...ex, exId: e.target.value })}
+                      className="col-span-6 px-2 py-1 text-[12px] border border-stone-300 rounded bg-white">
+                      {exercises.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+                    </select>
+                    <input type="number" value={ex.sets} onChange={e => updEx(bi, ei, { ...ex, sets: Number(e.target.value)||0 })} placeholder="sets"
+                      className="col-span-2 px-2 py-1 text-[12px] text-right font-mono border border-stone-300 rounded"/>
+                    <input value={ex.reps} onChange={e => updEx(bi, ei, { ...ex, reps: e.target.value })} placeholder="reps"
+                      className="col-span-3 px-2 py-1 text-[12px] font-mono border border-stone-300 rounded"/>
+                    <button onClick={() => rmEx(bi, ei)} className="col-span-1 text-stone-400 hover:text-red-600"><I.Close className="w-4 h-4"/></button>
+                  </div>
+                ))}
+                <button onClick={() => addEx(bi)} className="text-[11.5px] text-amber-700 font-semibold mt-1.5 hover:underline">+ Add exercise</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* =========================================================================
+   DIETARY PLANS (WRK-06/07)
+   ========================================================================= */
+function DietPage({ roster }) {
+  const { params, go } = useRouter();
+  const diet = useCollection('dietPlans', SEED_DIET);
+  const [editing, setEditing] = useState(null);
+  const [confirmRm, setConfirmRm] = useState(null);
+
+  useEffect(() => {
+    if (params?.dietId) { const d = diet.items.find(x => x.id === params.dietId); if (d) setEditing({ ...d }); }
+    else if (params?.playerId && params?.create) {
+      setEditing({ id:null, playerId: params.playerId, title:'', assignedBy: TRAINER.name, assignedAt: Date.now(), status:'active',
+        kcal:2800, protein:170, carbs:340, fat:90, notes:'', meals:[{ time:'07:00', name:'Breakfast', items:'' }] });
+    }
+  }, [params?.dietId, params?.playerId, diet.items.length]);
+
+  const save = async () => {
+    if (!editing?.title?.trim() || !editing?.playerId) return;
+    await diet.save({ ...editing, id: editing.id || newId('dt'), assignedAt: editing.assignedAt || Date.now(), assignedBy: TRAINER.name });
+    setEditing(null);
+    go('diet');
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Dietary plans" subtitle="Create and assign dietary plans."
+        actions={<button onClick={() => setEditing({ id:null, playerId:'', title:'', assignedBy: TRAINER.name, assignedAt: Date.now(), status:'active', kcal:2800, protein:170, carbs:340, fat:90, notes:'', meals:[{ time:'07:00', name:'Breakfast', items:'' }] })}
+          className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press flex items-center gap-1.5"><I.Plus className="w-4 h-4"/>New plan</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <table className="w-full text-[13px]">
+            <thead><tr className="text-stone-500 text-[10.5px] uppercase tracking-wider border-b border-stone-200 bg-stone-50">
+              <th className="text-left py-2.5 px-4 font-semibold">Plan</th>
+              <th className="text-left font-semibold">Athlete</th>
+              <th className="text-right font-semibold">kcal</th>
+              <th className="text-right font-semibold">P / C / F</th>
+              <th className="text-center font-semibold">Meals</th>
+              <th className="text-right font-semibold">Assigned</th>
+              <th className="text-right font-semibold px-4">Actions</th>
+            </tr></thead>
+            <tbody>
+              {diet.items.sort((a,b) => (b.assignedAt||0) - (a.assignedAt||0)).map(d => {
+                const p = roster.find(r => r.id === d.playerId);
+                return (
+                  <tr key={d.id} className="border-t border-stone-100 hover:bg-stone-50">
+                    <td className="py-2 px-4 font-semibold text-stone-900">{d.title}</td>
+                    <td className="text-stone-700">{p ? `#${p.number} ${p.name}` : '—'}</td>
+                    <td className="text-right font-mono">{d.kcal}</td>
+                    <td className="text-right font-mono text-[11.5px]">{d.protein}/{d.carbs}/{d.fat}</td>
+                    <td className="text-center font-mono">{d.meals.length}</td>
+                    <td className="text-right text-stone-500 text-[11.5px]">{fmtRel(d.assignedAt)}</td>
+                    <td className="text-right px-4 space-x-3">
+                      <button onClick={() => setEditing({ ...d })} className="text-[12px] text-amber-700 hover:underline">Edit</button>
+                      <button onClick={() => setConfirmRm(d)} className="text-[12px] text-red-600 hover:underline">Delete</button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {diet.items.length === 0 && <tr><td colSpan={7} className="text-center text-stone-500 py-6">No dietary plans yet.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <DietEditor open={!!editing} draft={editing} setDraft={setEditing} roster={roster} onSave={save} onCancel={() => setEditing(null)}/>
+
+      <ConfirmDialog open={!!confirmRm} onCancel={() => setConfirmRm(null)}
+        onConfirm={async () => { await diet.remove(confirmRm.id); setConfirmRm(null); }}
+        title="Delete dietary plan?" message={`Delete "${confirmRm?.title}"?`}/>
+    </div>
+  );
+}
+function DietEditor({ open, draft, setDraft, roster, onSave, onCancel }) {
+  if (!draft) return null;
+  const updMeal = (i, m) => setDraft({ ...draft, meals: draft.meals.map((x,j) => j === i ? m : x) });
+  const rmMeal = (i) => setDraft({ ...draft, meals: draft.meals.filter((_,j) => j !== i) });
+  const addMeal = () => setDraft({ ...draft, meals: [...draft.meals, { time:'', name:'', items:'' }] });
+  return (
+    <Modal open={open} onClose={onCancel} title={draft.id ? 'Edit dietary plan' : 'New dietary plan'} subtitle="Build a dietary plan and assign it." size="xl"
+      footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onSave} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-amber-600 hover:bg-amber-700 btn-press">Save & assign</button>
+      </>}>
+      <div className="grid grid-cols-2 gap-x-4">
+        <SelectField label="Assign to (WRK-07)" value={draft.playerId} onChange={v => setDraft({...draft, playerId:v})}
+          options={[{ value:'', label:'— pick athlete —' }, ...roster.map(r => ({ value:r.id, label:`#${r.number} ${r.name}` }))]}/>
+        <TextField label="Title" value={draft.title} onChange={v => setDraft({...draft, title:v})} required/>
+      </div>
+      <div className="grid grid-cols-4 gap-x-4">
+        <NumberField label="kcal / day" value={draft.kcal} onChange={v => setDraft({...draft, kcal:v})}/>
+        <NumberField label="Protein (g)" value={draft.protein} onChange={v => setDraft({...draft, protein:v})}/>
+        <NumberField label="Carbs (g)" value={draft.carbs} onChange={v => setDraft({...draft, carbs:v})}/>
+        <NumberField label="Fat (g)" value={draft.fat} onChange={v => setDraft({...draft, fat:v})}/>
+      </div>
+      <TextArea label="Notes" value={draft.notes} onChange={v => setDraft({...draft, notes:v})} rows={2}/>
+      <div className="mt-2 pt-3 border-t border-stone-200">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-display text-[14px] font-semibold text-stone-900">Meals</div>
+          <button onClick={addMeal} className="text-[12px] font-semibold text-amber-700 hover:underline">+ Add meal</button>
+        </div>
+        <div className="space-y-1.5">
+          {draft.meals.map((m, i) => (
+            <div key={i} className="grid grid-cols-12 gap-2 items-center">
+              <input value={m.time} onChange={e => updMeal(i, { ...m, time: e.target.value })} placeholder="07:00" className="col-span-2 px-2 py-1 text-[12px] font-mono border border-stone-300 rounded"/>
+              <input value={m.name} onChange={e => updMeal(i, { ...m, name: e.target.value })} placeholder="Breakfast" className="col-span-3 px-2 py-1 text-[12px] border border-stone-300 rounded"/>
+              <input value={m.items} onChange={e => updMeal(i, { ...m, items: e.target.value })} placeholder="Items…" className="col-span-6 px-2 py-1 text-[12px] border border-stone-300 rounded"/>
+              <button onClick={() => rmMeal(i)} className="col-span-1 text-stone-400 hover:text-red-600"><I.Close className="w-4 h-4"/></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* =========================================================================
+   INJURY REPORTS (INJ-01..03)
+   ========================================================================= */
+function InjuriesPage({ roster }) {
+  const { params, go } = useRouter();
+  const injuries = useCollection('injuries', SEED_INJURIES);
+  const [editing, setEditing] = useState(null);
+  const [confirmRm, setConfirmRm] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    if (params?.injuryId) { const i = injuries.items.find(x => x.id === params.injuryId); if (i) setEditing({ ...i }); }
+    else if (params?.playerId && params?.create) {
+      setEditing({ id:null, playerId: params.playerId, title:'', occurredAt: new Date().toISOString().slice(0,10), reportedBy: TRAINER.name, reportedAt: Date.now(),
+        severity:'Mild', mechanism:'', bodyPart:'', status:'active', treatment:'', timeline:[] });
+    }
+  }, [params?.injuryId, params?.playerId, injuries.items.length]);
+
+  const rows = injuries.items.filter(i => statusFilter === 'all' || i.status === statusFilter).sort((a,b) => (b.reportedAt||0) - (a.reportedAt||0));
+
+  const save = async () => {
+    if (!editing?.title?.trim() || !editing?.playerId) return;
+    await injuries.save({ ...editing, id: editing.id || newId('inj'), reportedAt: editing.reportedAt || Date.now(), reportedBy: TRAINER.name });
+    setEditing(null);
+    go('injuries');
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Injury reports" subtitle="Open, edit, and review injury reports."
+        actions={<button onClick={() => setEditing({ id:null, playerId:'', title:'', occurredAt: new Date().toISOString().slice(0,10), reportedBy: TRAINER.name, reportedAt: Date.now(), severity:'Mild', mechanism:'', bodyPart:'', status:'active', treatment:'', timeline:[] })}
+          className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press flex items-center gap-1.5"><I.Plus className="w-4 h-4"/>New report</button>}/>
+      <div className="px-7 py-3 border-b border-stone-200 bg-white flex items-center gap-3">
+        {[['all','All'],['active','Active'],['monitoring','Monitoring'],['recovered','Recovered']].map(([id,l]) => (
+          <button key={id} onClick={() => setStatusFilter(id)}
+            className={`px-3 py-1.5 text-[12px] font-semibold rounded-md ${statusFilter === id ? 'bg-amber-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{l}</button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="space-y-3">
+          {rows.map(i => {
+            const p = roster.find(r => r.id === i.playerId);
+            return (
+              <button key={i.id} onClick={() => go('injuryDetail', { injuryId: i.id })}
+                className="w-full text-left bg-white border border-stone-200 rounded-xl p-4 hover:border-amber-200 hover:shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="text-center bg-stone-50 rounded-lg px-3 py-2 border border-stone-100 w-16 shrink-0">
+                    <div className="text-[10px] font-semibold text-stone-500 uppercase">{new Date(i.occurredAt).toLocaleDateString(undefined, { month:'short' })}</div>
+                    <div className="font-display text-xl font-bold text-stone-900">{new Date(i.occurredAt).getDate()}</div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="font-display text-[14.5px] font-semibold text-stone-900 truncate">{i.title}</div>
+                      <StatusBadge kind={i.status}/>
+                      <span className="text-[10px] font-bold uppercase bg-stone-100 text-stone-700 px-1.5 py-0.5 rounded">{i.severity}</span>
+                    </div>
+                    <div className="text-[12px] text-stone-500">{p ? `#${p.number} ${p.name}` : '—'} • {i.bodyPart} • reported {fmtRel(i.reportedAt)}</div>
+                    <div className="text-[12.5px] text-stone-700 mt-2 line-clamp-2">{i.mechanism}</div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+          {rows.length === 0 && <div className="text-center text-stone-500 py-8 text-[13px]">No injury reports match.</div>}
+        </div>
+      </div>
+
+      <InjuryEditor open={!!editing} draft={editing} setDraft={setEditing} roster={roster} onSave={save} onCancel={() => setEditing(null)}/>
+    </div>
+  );
+}
+function InjuryDetailPage({ roster }) {
+  const { params, go } = useRouter();
+  const injuries = useCollection('injuries', SEED_INJURIES);
+  const inj = injuries.items.find(i => i.id === params.injuryId);
+  if (!inj) return <div className="flex-1 flex items-center justify-center text-stone-500">Report not found.</div>;
+  const p = roster.find(r => r.id === inj.playerId);
+
+  const addTimeline = async (note) => {
+    if (!note?.trim()) return;
+    const next = { ...inj, timeline: [...(inj.timeline||[]), { date: new Date().toISOString().slice(0,10), note }] };
+    await injuries.save(next);
+  };
+  const setStatus = async (s) => await injuries.save({ ...inj, status: s });
+
+  const [noteDraft, setNoteDraft] = useState('');
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title={inj.title} subtitle={`${p ? `#${p.number} ${p.name}` : ''} • ${inj.bodyPart} • ${inj.severity}`}
+        actions={<button onClick={() => go('injuries')} className="text-[12.5px] text-stone-700 hover:text-stone-900 flex items-center gap-1"><I.ChevronL className="w-4 h-4"/>All reports</button>}/>
+      <div className="flex-1 overflow-y-auto p-7">
+        <div className="grid grid-cols-12 gap-5">
+          <div className="col-span-12 lg:col-span-4 space-y-4">
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="text-[11px] font-semibold text-stone-500 uppercase mb-1">Status</div>
+              <StatusBadge kind={inj.status}/>
+              <div className="mt-4 flex gap-2 flex-wrap">
+                {['active','monitoring','recovered'].map(s => (
+                  <button key={s} onClick={() => setStatus(s)} disabled={inj.status === s}
+                    className={`px-2.5 py-1 text-[11.5px] font-semibold rounded ${inj.status === s ? 'bg-amber-600 text-white' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'}`}>{s}</button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-5 text-[13px] space-y-2">
+              <div><dt className="text-[10.5px] font-semibold text-stone-500 uppercase">Occurred</dt><dd>{fmtDate(inj.occurredAt)}</dd></div>
+              <div><dt className="text-[10.5px] font-semibold text-stone-500 uppercase">Reported</dt><dd>{fmtRel(inj.reportedAt)} by {inj.reportedBy}</dd></div>
+              <div><dt className="text-[10.5px] font-semibold text-stone-500 uppercase">Body part</dt><dd>{inj.bodyPart}</dd></div>
+              <div><dt className="text-[10.5px] font-semibold text-stone-500 uppercase">Severity</dt><dd>{inj.severity}</dd></div>
+            </div>
+          </div>
+          <div className="col-span-12 lg:col-span-8 space-y-4">
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Mechanism</div>
+              <p className="text-[13px] text-stone-700 leading-relaxed">{inj.mechanism}</p>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-2">Treatment plan</div>
+              <p className="text-[13px] text-stone-700 leading-relaxed whitespace-pre-wrap">{inj.treatment}</p>
+            </div>
+            <div className="bg-white border border-stone-200 rounded-xl p-5">
+              <div className="font-display text-[14px] font-semibold text-stone-900 mb-3">Timeline</div>
+              <ol className="space-y-2">
+                {(inj.timeline||[]).map((t, i) => (
+                  <li key={i} className="flex gap-3 text-[12.5px]">
+                    <span className="font-mono text-stone-500 shrink-0 w-24">{t.date}</span>
+                    <span className="text-stone-700">{t.note}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-3 pt-3 border-t border-stone-100 flex items-center gap-2">
+                <input value={noteDraft} onChange={e => setNoteDraft(e.target.value)} placeholder="Add a timeline note…"
+                  className="flex-1 px-3 py-1.5 text-[12.5px] border border-stone-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+                <button onClick={() => { addTimeline(noteDraft); setNoteDraft(''); }}
+                  className="px-3 py-1.5 text-[12px] font-semibold rounded bg-amber-600 text-white hover:bg-amber-700">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+function InjuryEditor({ open, draft, setDraft, roster, onSave, onCancel }) {
+  if (!draft) return null;
+  return (
+    <Modal open={open} onClose={onCancel} title={draft.id ? 'Edit injury report' : 'New injury report'} subtitle="Document an injury and treatment plan." size="xl"
+      footer={<>
+        <button onClick={onCancel} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button onClick={onSave} className="px-3.5 py-2 text-[13px] font-semibold text-white rounded-md bg-amber-600 hover:bg-amber-700 btn-press">Save</button>
+      </>}>
+      <div className="grid grid-cols-2 gap-x-4">
+        <SelectField label="Athlete" value={draft.playerId} onChange={v => setDraft({...draft, playerId:v})}
+          options={[{ value:'', label:'— pick athlete —' }, ...roster.map(r => ({ value:r.id, label:`#${r.number} ${r.name}` }))]}/>
+        <TextField label="Title" value={draft.title} onChange={v => setDraft({...draft, title:v})} required placeholder="e.g. Left ankle sprain — Grade I"/>
+        <TextField label="Body part" value={draft.bodyPart} onChange={v => setDraft({...draft, bodyPart:v})}/>
+        <TextField label="Date occurred" type="date" value={draft.occurredAt} onChange={v => setDraft({...draft, occurredAt:v})}/>
+        <SelectField label="Severity" value={draft.severity} onChange={v => setDraft({...draft, severity:v})}
+          options={['Mild','Moderate','Severe'].map(s => ({ value:s, label:s }))}/>
+        <SelectField label="Status" value={draft.status} onChange={v => setDraft({...draft, status:v})}
+          options={[{value:'active',label:'Active'},{value:'monitoring',label:'Monitoring'},{value:'recovered',label:'Recovered'}]}/>
+        <div className="col-span-2"><TextArea label="Mechanism" rows={2} value={draft.mechanism} onChange={v => setDraft({...draft, mechanism:v})}/></div>
+        <div className="col-span-2"><TextArea label="Treatment plan" rows={3} value={draft.treatment} onChange={v => setDraft({...draft, treatment:v})}/></div>
+      </div>
+    </Modal>
+  );
+}
+
+/* =========================================================================
+   MESSAGES (MSG-04/05/09..11)
+   ========================================================================= */
+function MessagesPage({ roster }) {
+  const { params } = useRouter();
+  const messages = useCollection('messages', []);
+  const [tab, setTab] = useState('inbox');
+  const [activeId, setActiveId] = useState(params?.messageId || null);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const TRAINER_ID = 'trainer-1';
+
+  const inbox = useMemo(() => messages.items.filter(m => {
+    if (m.from?.userId === TRAINER_ID) return false;
+    return (m.to?.scope === 'role' && m.to?.role === 'trainer') || (m.to?.scope === 'player');
+  }).sort((a,b) => (b.sentAt||0) - (a.sentAt||0)), [messages.items]);
+
+  const sent = useMemo(() => messages.items.filter(m => m.from?.userId === TRAINER_ID).sort((a,b) => (b.sentAt||0) - (a.sentAt||0)), [messages.items]);
+
+  const list = tab === 'inbox' ? inbox : sent;
+  const active = list.find(m => m.id === activeId) || list[0];
+
+  useEffect(() => {
+    if (active && tab === 'inbox' && active.from?.userId !== TRAINER_ID) {
+      if (!(active.readBy && active.readBy[TRAINER_ID])) {
+        messages.save({ ...active, readBy: { ...(active.readBy||{}), [TRAINER_ID]: Date.now() } });
+      }
+    }
+  }, [active?.id]);
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <PageHeader title="Messages" subtitle="Your messages."
+        actions={<button onClick={() => setComposeOpen(true)} className="px-3.5 py-2 text-[12.5px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 btn-press flex items-center gap-1.5"><I.Plus className="w-4 h-4"/>Compose</button>}/>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-80 border-r border-stone-200 flex flex-col bg-white">
+          <div className="flex border-b border-stone-200">
+            {[['inbox','Inbox'],['sent','Sent']].map(([id,l]) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex-1 py-2.5 text-[12.5px] font-semibold ${tab === id ? 'text-amber-700 border-b-2 border-amber-600' : 'text-stone-500 border-b-2 border-transparent hover:text-stone-800'}`}>{l}</button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {list.map(m => {
+              const unread = tab === 'inbox' && !(m.readBy && m.readBy[TRAINER_ID]);
+              return (
+                <button key={m.id} onClick={() => setActiveId(m.id)}
+                  className={`w-full text-left px-4 py-2.5 border-b border-stone-100 hover:bg-stone-50 ${active?.id === m.id ? 'bg-amber-50/60' : ''}`}>
+                  <div className="flex items-start gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${unread ? 'bg-amber-500' : 'bg-transparent'}`}/>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className={`text-[12.5px] truncate ${unread ? 'font-semibold text-stone-900' : 'font-medium text-stone-700'}`}>
+                          {tab === 'inbox' ? m.from?.name : (m.to?.scope === 'role' ? `Direct → ${m.to.role}` : (roster.find(r => r.id === m.to?.playerId)?.name || 'Direct'))}
+                        </span>
+                        <span className="text-[10.5px] text-stone-400 shrink-0">{fmtRel(m.sentAt)}</span>
+                      </div>
+                      <div className={`text-[12px] truncate ${unread ? 'text-stone-800 font-medium' : 'text-stone-600'}`}>{m.subject}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+            {list.length === 0 && <div className="text-center text-stone-500 py-8 text-[12.5px]">No messages.</div>}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto bg-stone-50/50 p-7">
+          {active ? (
+            <div className="max-w-2xl mx-auto bg-white border border-stone-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-700">{active.kind === 'announcement' ? 'Team announcement' : 'Direct'}</span>
+                <span className="text-[11.5px] text-stone-500">{new Date(active.sentAt).toLocaleString()}</span>
+              </div>
+              <h2 className="font-display text-xl font-bold text-stone-900 mt-2">{active.subject}</h2>
+              <div className="mt-1 text-[12.5px] text-stone-600">From <span className="font-semibold">{active.from?.name}</span> ({active.from?.role})</div>
+              <p className="text-[14px] text-stone-800 mt-4 whitespace-pre-wrap leading-relaxed">{active.body}</p>
+            </div>
+          ) : <div className="text-center text-stone-500 py-12 text-[13px]">Select a message.</div>}
+        </div>
+      </div>
+      <ComposeModal open={composeOpen} onClose={() => setComposeOpen(false)} roster={roster}
+        onSend={async msg => { await messages.save(msg); setComposeOpen(false); setTab('sent'); setActiveId(msg.id); }}/>
+    </div>
+  );
+}
+function ComposeModal({ open, onClose, roster, onSend }) {
+  const TRAINER_ID = 'trainer-1';
+  const [recipient, setRecipient] = useState('player');
+  const [playerId, setPlayerId] = useState('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  useEffect(() => { if (open) { setRecipient('player'); setPlayerId(''); setSubject(''); setBody(''); } }, [open]);
+  const can = subject.trim() && body.trim() && (recipient !== 'player' || playerId);
+  const send = () => {
+    const to = recipient === 'coach' ? { scope:'role', role:'coach' } : { scope:'player', playerId };
+    onSend({ id: newId('msg'), from: { role:'trainer', name: TRAINER.name, userId: TRAINER_ID }, to, kind:'direct', subject, body, sentAt: Date.now(), readBy:{}, threadId: newId('th') });
+  };
+  return (
+    <Modal open={open} onClose={onClose} title="New message" subtitle="Send a message to a player or the coach." size="lg"
+      footer={<>
+        <button onClick={onClose} className="px-3.5 py-2 text-[13px] font-medium text-stone-700 hover:bg-stone-100 rounded-md btn-press">Cancel</button>
+        <button disabled={!can} onClick={send} className="px-3.5 py-2 text-[13px] font-semibold rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:bg-stone-300 btn-press flex items-center gap-1.5"><I.Send className="w-4 h-4"/>Send</button>
+      </>}>
+      <SelectField label="Recipient" value={recipient} onChange={setRecipient}
+        options={[{value:'player',label:'Player (MSG-04)'},{value:'coach',label:'Coach (MSG-05)'}]}/>
+      {recipient === 'player' && (
+        <SelectField label="Player" value={playerId} onChange={setPlayerId}
+          options={[{ value:'', label:'— select player —' }, ...roster.map(r => ({ value:r.id, label:`#${r.number} ${r.name}` }))]}/>
+      )}
+      <TextField label="Subject" value={subject} onChange={setSubject} required/>
+      <TextArea label="Message" value={body} onChange={setBody} rows={6}/>
+    </Modal>
+  );
+}
+
+/* =========================================================================
+   SIDEBAR + APP
+   ========================================================================= */
+function Sidebar({ active, onSelect, unreadCount, onSignOut }) {
+  const groups = [
+    { label:'Overview', items:[
+      { id:'dashboard', name:'Dashboard',  icon:I.Home },
+      { id:'athletes',  name:'Athletes',   icon:I.Users },
+    ]},
+    { label:'Performance', items:[
+      { id:'attributes', name:'Attributes', icon:I.Ruler },
+      { id:'exercises',  name:'Exercise library', icon:I.Library },
+    ]},
+    { label:'Plans', items:[
+      { id:'workouts', name:'Workouts', icon:I.Dumb },
+      { id:'diet',     name:'Diet',     icon:I.Apple },
+    ]},
+    { label:'Medical', items:[
+      { id:'injuries', name:'Injury reports', icon:I.Bandage },
+    ]},
+    { label:'Comms', items:[
+      { id:'messages', name:'Messages', icon:I.Mail, badge: unreadCount > 0 ? unreadCount : null },
+    ]},
+  ];
+
+  return (
+    <aside className="w-60 bg-stone-50 border-r border-stone-200 flex flex-col h-full shrink-0">
+      <div className="px-4 pt-4 pb-4 border-b border-stone-200 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-sm">
+          <I.Dumb className="w-5 h-5 text-white"/>
+        </div>
+        <div className="min-w-0">
+          <div className="font-display text-[15.5px] font-bold text-stone-900 leading-tight">Centralize</div>
+          <div className="text-[11px] text-stone-500 leading-tight">Trainer Module</div>
+        </div>
+      </div>
+      <nav className="flex-1 overflow-y-auto py-2 pr-1.5">
+        {groups.map(g => (
+          <div key={g.label} className="mb-2">
+            <div className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-400 px-4 py-1.5">{g.label}</div>
+            {g.items.map(it => {
+              const Icon = it.icon;
+              const isActive = active === it.id;
+              return (
+                <button key={it.id} onClick={() => onSelect(it.id)}
+                  className={`w-full flex items-center gap-2.5 pl-4 pr-3 py-1.5 text-[13px] font-medium ${isActive ? 'bg-amber-50 text-amber-700 border-r-2 border-amber-600' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100 border-r-2 border-transparent'}`}>
+                  <Icon className="w-4 h-4 shrink-0"/>
+                  <span className="flex-1 text-left truncate">{it.name}</span>
+                  {it.badge && <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10.5px] font-bold flex items-center justify-center">{it.badge}</span>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+      <div className="border-t border-stone-200 px-3 py-3">
+        <div className="flex items-center gap-2.5 mb-2 px-1">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white text-[11.5px] font-bold shrink-0">SW</div>
+          <div className="min-w-0">
+            <div className="text-[12.5px] font-semibold text-stone-800 truncate">{TRAINER.name}</div>
+            <div className="text-[10.5px] text-stone-500">Head trainer</div>
+          </div>
+        </div>
+        <button onClick={onSignOut} className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-[12px] font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded">
+          <I.Logout className="w-4 h-4"/> Sign out
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function App() {
+
+  const gate = useRoleGate('trainer');
+  const roster = useCollection('roster', SEED_ROSTER);
+  const messages = useCollection('messages', []);
+  const [routeState, setRouteState] = useState({ route:'dashboard', params:{} });
+  const TRAINER_ID = 'trainer-1';
+
+  if (gate.checking) return <div className="h-full flex items-center justify-center text-stone-500 text-[13px]">Loading…</div>;
+  if (gate.mismatch) return <RoleGateScreen role={gate.role} expected="trainer"/>;
+
+  const unread = messages.items.filter(m => {
+    if (m.from?.userId === TRAINER_ID) return false;
+    const mine = (m.to?.scope === 'role' && m.to?.role === 'trainer') || (m.to?.scope === 'player');
+    return mine && !(m.readBy && m.readBy[TRAINER_ID]);
+  }).length;
+
+  const go = (route, params = {}) => setRouteState({ route, params });
+  const PageComp = ROUTES[routeState.route]?.component || DashboardPage;
+
+  const signOut = async () => {
+    await Storage.delete('currentUser:role');
+    await Storage.delete('currentUser:name');
+    await Storage.delete('currentUser:playerId');
+    window.location.href = 'login.html';
+  };
+
+  return (
+    <RouterCtx.Provider value={{ route: routeState.route, params: routeState.params, go }}>
+      <div className="h-full flex">
+        <Sidebar active={routeState.route} onSelect={(id) => go(id)} unreadCount={unread} onSignOut={signOut}/>
+        <main className="flex-1 h-full overflow-hidden flex flex-col canvas-bg">
+          <PageComp roster={roster.items}/>
+        </main>
+      </div>
+    </RouterCtx.Provider>
+  );
+}
+
+ROUTES = {
+  dashboard:    { component: DashboardPage },
+  athletes:     { component: AthletesPage },
+  athlete:      { component: AthleteDetailPage },
+  attributes:   { component: AttributesPage },
+  exercises:    { component: ExerciseLibraryPage },
+  workouts:     { component: WorkoutsPage },
+  diet:         { component: DietPage },
+  injuries:     { component: InjuriesPage },
+  injuryDetail: { component: InjuryDetailPage },
+  messages:     { component: MessagesPage },
+};
+
+
+/* ============================================================
+   Root wrapper — performs the active session check BEFORE App
+   mounts, so React never sees hook-count mismatches between an
+   early return and the post-verification render.
+   ============================================================ */
+function Root() {
+  const [__sessionChecked, __setSessionChecked] = useState(false);
+  const [__sessionUser, __setSessionUser] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (window.cs_auth) {
+        const u = await window.cs_auth.requireSession('trainer');
+        if (cancelled) return;
+        __setSessionUser(u);
+      } else {
+        __setSessionUser({ role: 'trainer' });
+      }
+      if (!cancelled) __setSessionChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  if (!__sessionChecked) {
+    return (
+      <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8f6f3', color:'#78716c', fontSize:'13px', fontFamily:"'Plus Jakarta Sans', system-ui, sans-serif" }}>
+        Verifying session…
+      </div>
+    );
+  }
+  if (!__sessionUser) return null;
+  return <App/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>

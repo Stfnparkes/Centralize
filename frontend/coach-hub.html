@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Centralize — Coach Hub</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
+  html, body, #root { height: 100%; margin: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0c0a09; background: #0a0a0a; overflow: hidden; }
+  .font-display { font-family: 'Bricolage Grotesque', system-ui, sans-serif; letter-spacing: -0.01em; }
+  .canvas-bg {
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(13, 148, 136, 0.22) 0%, transparent 45%),
+      radial-gradient(ellipse at 80% 80%, rgba(15, 118, 110, 0.18) 0%, transparent 45%),
+      linear-gradient(135deg, #0a0a0a 0%, #1c1917 100%);
+  }
+  .btn-press:active { transform: translateY(1px) scale(0.98); }
+  .hub-card { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+  .hub-card:hover { transform: translateY(-4px); box-shadow: 0 22px 48px -10px rgba(0,0,0,0.5); }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fade-up 0.35s ease-out backwards; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="runtime.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+function Hub() {
+  const [user, setUser] = useState(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (window.cs_auth) {
+        const u = await window.cs_auth.requireSession('coach');
+        if (cancelled) return;
+        setUser(u);
+      } else {
+        setUser({ role: 'coach', name: 'Coach' });
+      }
+      if (!cancelled) setChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const signOut = async () => {
+    if (window.cs_auth) await window.cs_auth.logout();
+    window.location.href = 'login.html';
+  };
+
+  if (!checked) {
+    return (
+      <div className="h-full canvas-bg flex items-center justify-center text-stone-400 text-[13px]">
+        Verifying session…
+      </div>
+    );
+  }
+  if (!user) return null;
+
+  return (
+    <div className="h-full canvas-bg flex flex-col">
+      <header className="px-6 sm:px-10 py-5 flex items-center justify-between text-stone-300">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center shadow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" className="w-5 h-5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg>
+          </div>
+          <div>
+            <div className="font-display font-bold text-white text-[15.5px]">Centralize</div>
+            <div className="text-[11px] uppercase tracking-wider text-stone-400">Coach Hub</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <div className="text-[12.5px] text-white font-semibold">{user.name}</div>
+            <div className="text-[10.5px] text-stone-400 uppercase tracking-wider">Coach</div>
+          </div>
+          <button onClick={signOut} className="px-3 py-1.5 text-[12px] font-semibold rounded-md bg-white/10 text-white hover:bg-white/20 backdrop-blur border border-white/10 btn-press">
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-6 pb-10">
+        <div className="w-full max-w-5xl fade-up">
+          <div className="text-center mb-10">
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              Welcome back, {user.name?.split(' ').slice(-1)[0] || 'Coach'}
+            </h1>
+            <p className="text-stone-300 mt-3 text-[14.5px] max-w-xl mx-auto">
+              Choose where you want to work today.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <HubCard
+              href="coaches-module.html"
+              title="Coaching Tools"
+              tagline="Plays, playbooks, drills, rotations, video"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+                  <rect x="3" y="4" width="18" height="16" rx="2.5"/>
+                  <path d="M7 9h10M7 13h7M7 17h5"/>
+                </svg>
+              }
+              features={[
+                'Play designer with multi-phase keyframes',
+                'Playbook library and play templates',
+                'Drills, practice plans, rotations',
+                'Video uploads and 2D-map mapping',
+              ]}
+            />
+            <HubCard
+              href="coach-bridge.html"
+              title="Personnel Management"
+              tagline="Roster, stat entry, profile verification, messaging"
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+                  <circle cx="9" cy="8" r="3.5"/>
+                  <circle cx="17" cy="9" r="2.5"/>
+                  <path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/>
+                  <path d="M22 19c0-2.5-2-4.5-5-4.5"/>
+                </svg>
+              }
+              features={[
+                'Verify player-submitted profiles',
+                'Manage team identity and roster',
+                'Enter game scores and per-player stats',
+                'Send announcements and direct messages',
+              ]}
+            />
+          </div>
+        </div>
+      </main>
+
+      <footer className="px-6 sm:px-10 py-4 text-[11px] text-stone-500 flex items-center justify-between">
+        <span>&nbsp;</span>
+        <span>You can switch tools at any time from the Hub.</span>
+      </footer>
+    </div>
+  );
+}
+
+function HubCard({ href, title, tagline, features, icon }) {
+  return (
+    <a href={href}
+      className="hub-card block rounded-2xl p-7 bg-white/8 backdrop-blur border border-white/10 hover:border-teal-400/60">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-600 to-teal-800 flex items-center justify-center text-white shadow">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-xl font-bold text-white">{title}</div>
+          <div className="text-[12.5px] text-stone-300 mt-0.5">{tagline}</div>
+        </div>
+      </div>
+      <ul className="space-y-1.5 mt-4">
+        {features.map(f => (
+          <li key={f} className="flex items-start gap-2 text-[12.5px] text-stone-300">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 mt-0.5 text-emerald-400 shrink-0"><path d="m5 12 5 5L20 7"/></svg>
+            {f}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-5 py-2.5 rounded-md text-center text-[13px] font-semibold text-white bg-teal-600 hover:bg-teal-700 btn-press">
+        Open {title}
+      </div>
+    </a>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Hub/>);
+</script>
+</body>
+</html>
