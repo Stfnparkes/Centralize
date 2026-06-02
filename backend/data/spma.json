@@ -1,7 +1,7 @@
 {
   "kv": {
     "roster:pl-1": {
-      "value": "{\"id\":\"pl-1\",\"number\":4,\"name\":\"M. Anderson\",\"position\":\"PG\"}",
+      "value": "{\"id\":\"pl-1\",\"number\":4,\"name\":\"M. Anderson\",\"position\":\"PG\"}"
       "updated_at": 1779131777507,
       "updated_by": "system"
     },
